@@ -1,16 +1,9 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-azurerm-avm-template
+# terraform-github-avm-repository
 
-This is a template repo for Terraform Azure Verified Modules.
+This is a module for creating GitHub repository and supporting child resources.
 
-Things to do:
-
-1. Set up a GitHub repo environment called `test`.
-1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Create a user-assigned managed identity in your test subscription.
-1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
-1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
-1. Search and update TODOs within the code and remove the TODO comments once complete.
+To test locally, set `GITHUB_OWNER` to your Github organisation or individual user account.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -19,7 +12,9 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.2)
+
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -29,15 +24,16 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_private_endpoint.this_managed_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_resource_group.TODO](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [github_branch_protection.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/branch_protection) (resource)
+- [github_repository.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
+- [github_team_repository.admin](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
+- [github_team_repository.maintain](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
+- [github_team_repository.pull](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
+- [github_team_repository.push](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
-- [azurerm_client_config.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azapi_client_config.telemetry](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [github_organization.this](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/organization) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -45,21 +41,15 @@ The following resources are used by this module:
 
 The following input variables are required:
 
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: Azure region where the resource should be deployed.
-
-Type: `string`
-
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description: The name of the this resource.
+Description: The name of this resource.
 
 Type: `string`
 
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+### <a name="input_organization_name"></a> [organization\_name](#input\_organization\_name)
 
-Description: The resource group where the resources will be deployed.
+Description: The name of the organization.
 
 Type: `string`
 
@@ -67,63 +57,37 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
+### <a name="input_approvers"></a> [approvers](#input\_approvers)
 
-Description: A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
+Description: A list of approvers.
 
-Type:
+Type: `list(string)`
 
-```hcl
-object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-```
+Default: `[]`
 
-Default: `null`
+### <a name="input_archive_on_destroy"></a> [archive\_on\_destroy](#input\_archive\_on\_destroy)
 
-### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
+Description: Archive repository instead of deleting it on destroy
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Type: `bool`
 
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
-- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
-- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
-- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+Default: `true`
 
-Type:
+### <a name="input_create_branch_policies"></a> [create\_branch\_policies](#input\_create\_branch\_policies)
 
-```hcl
-map(object({
-    name                                     = optional(string, null)
-    log_categories                           = optional(set(string), [])
-    log_groups                               = optional(set(string), ["allLogs"])
-    metric_categories                        = optional(set(string), ["AllMetrics"])
-    log_analytics_destination_type           = optional(string, "Dedicated")
-    workspace_resource_id                    = optional(string, null)
-    storage_account_resource_id              = optional(string, null)
-    event_hub_authorization_rule_resource_id = optional(string, null)
-    event_hub_name                           = optional(string, null)
-    marketplace_partner_resource_id          = optional(string, null)
-  }))
-```
+Description: Whether to create branch policies.
 
-Default: `{}`
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_description"></a> [description](#input\_description)
+
+Description: The description of the repository.
+
+Type: `string`
+
+Default: `""`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -135,150 +99,235 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_lock"></a> [lock](#input\_lock)
+### <a name="input_environments"></a> [environments](#input\_environments)
 
-Description: Controls the Resource Lock configuration for this resource. The following properties can be specified:
+Description: A map of environment names.
 
-- `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
-- `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
-
-Type:
-
-```hcl
-object({
-    kind = string
-    name = optional(string, null)
-  })
-```
-
-Default: `null`
-
-### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
-
-Description: Controls the Managed Identity configuration on this resource. The following properties can be specified:
-
-- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
-- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
-
-Type:
-
-```hcl
-object({
-    system_assigned            = optional(bool, false)
-    user_assigned_resource_ids = optional(set(string), [])
-  })
-```
+Type: `map(string)`
 
 Default: `{}`
 
-### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
+### <a name="input_has_discussions"></a> [has\_discussions](#input\_has\_discussions)
 
-Description: A map of private endpoints to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
-- `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
-- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
-- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
-- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
-- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
-- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
-- `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-- `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
-- `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
-- `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
-- `resource_group_name` - (Optional) The resource group where the resources will be deployed. Defaults to the resource group of this resource.
-- `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-  - `name` - The name of the IP configuration.
-  - `private_ip_address` - The private IP address of the IP configuration.
-
-Type:
-
-```hcl
-map(object({
-    name = optional(string, null)
-    role_assignments = optional(map(object({
-      role_definition_id_or_name             = string
-      principal_id                           = string
-      description                            = optional(string, null)
-      skip_service_principal_aad_check       = optional(bool, false)
-      condition                              = optional(string, null)
-      condition_version                      = optional(string, null)
-      delegated_managed_identity_resource_id = optional(string, null)
-    })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_private_endpoints_manage_dns_zone_group"></a> [private\_endpoints\_manage\_dns\_zone\_group](#input\_private\_endpoints\_manage\_dns\_zone\_group)
-
-Description: Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy.
+Description: Enable repository discussions
 
 Type: `bool`
 
 Default: `true`
 
-### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
+### <a name="input_has_downloads"></a> [has\_downloads](#input\_has\_downloads)
 
-Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: Enable repository downloads
 
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
-- `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-- `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+Type: `bool`
 
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+Default: `true`
+
+### <a name="input_has_issues"></a> [has\_issues](#input\_has\_issues)
+
+Description: Enable repository issues
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_has_projects"></a> [has\_projects](#input\_has\_projects)
+
+Description: Enable repository projects
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_has_wiki"></a> [has\_wiki](#input\_has\_wiki)
+
+Description: Enable repository wiki
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_homepage_url"></a> [homepage\_url](#input\_homepage\_url)
+
+Description: Repository homepage URL
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_name_templates"></a> [name\_templates](#input\_name\_templates)
+
+Description: The name of the templates repo to use.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_pages"></a> [pages](#input\_pages)
+
+Description: The GitHub Pages configuration for the repository.
+
+Type:
+
+```hcl
+object({
+    branch = string
+    path   = string
+    cname  = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_repository_files"></a> [repository\_files](#input\_repository\_files)
+
+Description: A map of repository files with their content.
 
 Type:
 
 ```hcl
 map(object({
-    role_definition_id_or_name             = string
-    principal_id                           = string
-    description                            = optional(string, null)
-    skip_service_principal_aad_check       = optional(bool, false)
-    condition                              = optional(string, null)
-    condition_version                      = optional(string, null)
-    delegated_managed_identity_resource_id = optional(string, null)
+    content = string
   }))
 ```
 
 Default: `{}`
 
-### <a name="input_tags"></a> [tags](#input\_tags)
+### <a name="input_required_checks"></a> [required\_checks](#input\_required\_checks)
 
-Description: (Optional) Tags of the resource.
+Description: List of required checks
 
-Type: `map(string)`
+Type: `list(string)`
 
-Default: `null`
+Default: `[]`
+
+### <a name="input_team_access"></a> [team\_access](#input\_team\_access)
+
+Description: Team access types for created repository
+
+Type:
+
+```hcl
+object({
+    admin    = optional(list(string))
+    maintain = optional(list(string))
+    push     = optional(list(string))
+    pull     = optional(list(string))
+  })
+```
+
+Default:
+
+```json
+{
+  "admin": [],
+  "maintain": [],
+  "pull": [],
+  "push": []
+}
+```
+
+### <a name="input_template_repository_files"></a> [template\_repository\_files](#input\_template\_repository\_files)
+
+Description: A map of template repository files with their content.
+
+Type:
+
+```hcl
+map(object({
+    content = string
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_topics"></a> [topics](#input\_topics)
+
+Description: n/a
+
+Type: `list(string)`
+
+Default: `[]`
+
+### <a name="input_type"></a> [type](#input\_type)
+
+Description: Type of repository: `core`, `module`, `template`. Defaults to `core`
+
+Type: `string`
+
+Default: `"core"`
+
+### <a name="input_use_template_repository"></a> [use\_template\_repository](#input\_use\_template\_repository)
+
+Description: Whether to use the template repository.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_visibility"></a> [visibility](#input\_visibility)
+
+Description: The visibility of the repository.  Can be "public", "internal", or "private".
+
+Only organizations associated with an enterprise can set visibility to internal
+
+Type: `string`
+
+Default: `"internal"`
+
+### <a name="input_vulnerability_alerts"></a> [vulnerability\_alerts](#input\_vulnerability\_alerts)
+
+Description: Enable vulnerability alerts
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_workflows"></a> [workflows](#input\_workflows)
+
+Description: A map of workflows with their file names and environment user-assigned managed identity mappings.
+
+Type:
+
+```hcl
+map(object({
+    workflow_file_name = string
+    environment_user_assigned_managed_identity_mappings = list(object({
+      environment_key                    = string
+      user_assigned_managed_identity_key = string
+    }))
+  }))
+```
+
+Default: `{}`
 
 ## Outputs
 
 The following outputs are exported:
 
-### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
+### <a name="output_admins"></a> [admins](#output\_admins)
 
-Description:   A map of the private endpoints created.
+Description: n/a
+
+### <a name="output_branch_protection"></a> [branch\_protection](#output\_branch\_protection)
+
+Description: n/a
+
+### <a name="output_maintainers"></a> [maintainers](#output\_maintainers)
+
+Description: n/a
+
+### <a name="output_pullers"></a> [pullers](#output\_pullers)
+
+Description: n/a
+
+### <a name="output_pushers"></a> [pushers](#output\_pushers)
+
+Description: n/a
+
+### <a name="output_repository"></a> [repository](#output\_repository)
+
+Description: n/a
 
 ## Modules
 

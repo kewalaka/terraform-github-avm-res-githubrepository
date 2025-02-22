@@ -1,12 +1,5 @@
-# terraform-azurerm-avm-template
+# terraform-github-avm-repository
 
-This is a template repo for Terraform Azure Verified Modules.
+This is a module for creating GitHub repository and supporting child resources.
 
-Things to do:
-
-1. Set up a GitHub repo environment called `test`.
-1. Configure environment protection rule to ensure that approval is required before deploying to this environment.
-1. Create a user-assigned managed identity in your test subscription.
-1. Create a role assignment for the managed identity on your test subscription, use the minimum required role.
-1. Configure federated identity credentials on the user assigned managed identity. Use the GitHub environment.
-1. Search and update TODOs within the code and remove the TODO comments once complete.
+To test locally, set `GITHUB_OWNER` to your Github organisation or individual user account.
