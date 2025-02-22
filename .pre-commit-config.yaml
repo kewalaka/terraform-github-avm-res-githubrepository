@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.86.0
+    hooks:
+      - id: terraform_fmt
+  #     #- id: terraform_docs
+  #     #- id: terraform_tflint
+  #     #- id: terraform_tfsec
+  #     #- id: terraform_validate
+  #     #- id: terraform_plan
+  - repo: local
+    hooks:
+      - id: avm_docs
+        name: AVM Pre-Commit Hook
+        entry: bash -c '[[ "$OSTYPE" == "msys" ]] && ./avm.bat docs || ./avm docs'
+        language: system
+        types: [terraform]      
+
