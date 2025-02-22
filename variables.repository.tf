@@ -140,12 +140,3 @@ variable "vulnerability_alerts" {
   default     = true
   nullable    = false
 }
-
-variable "create_branch_policies" {
-  type        = bool
-  description = <<DESCRIPTION
-Whether to create branch policies.
-DESCRIPTION
-  default     = false
-  nullable    = false
-}

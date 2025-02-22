@@ -73,6 +73,31 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_branches"></a> [branches](#input\_branches)
+
+Description: Map of branches to be created along with their branch protection policies.
+
+Type:
+
+```hcl
+map(object({
+    name               = string
+    protection_enabled = bool
+    protection = object({
+      enforce_admins                  = bool
+      required_linear_history         = bool
+      require_conversation_resolution = bool
+      required_pull_request_reviews = object({
+        dismiss_stale_reviews           = bool
+        restrict_dismissals             = bool
+        required_approving_review_count = number
+      })
+    })
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_create_branch_policies"></a> [create\_branch\_policies](#input\_create\_branch\_policies)
 
 Description: Whether to create branch policies.
@@ -190,6 +215,22 @@ map(object({
     content = string
   }))
 ```
+
+Default: `{}`
+
+### <a name="input_repository_secrets"></a> [repository\_secrets](#input\_repository\_secrets)
+
+Description: Map of github action secrets to be created.
+
+Type: `map(string)`
+
+Default: `{}`
+
+### <a name="input_repository_variables"></a> [repository\_variables](#input\_repository\_variables)
+
+Description: Map of github action variables to be created.
+
+Type: `map(string)`
 
 Default: `{}`
 
