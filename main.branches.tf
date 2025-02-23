@@ -1,17 +1,39 @@
+module "branches" {
+  source   = "./modules/branch"
+  for_each = var.branches
 
-resource "github_branch_protection" "this" {
-  count                           = var.create_branch_policies ? 1 : 0
-  repository_id                   = github_repository.this.name
-  pattern                         = "main"
-  enforce_admins                  = true
-  required_linear_history         = true
-  require_conversation_resolution = true
-
-  required_pull_request_reviews {
-    dismiss_stale_reviews           = true
-    restrict_dismissals             = true
-    required_approving_review_count = length(var.approvers) > 1 ? 1 : 0
+  name = each.value.name
+  repository = {
+    id = github_repository.this.id
   }
 
-  #depends_on = [github_repository_file.alz]
+  source_branch = try(each.value.source_branch, null)
+  source_sha    = try(each.value.source_sha, null)
+}
+
+module "branch_protection_policies" {
+  source   = "./modules/branch_protection"
+  for_each = var.branch_protection_policies
+
+  repository = {
+    id = github_repository.this.id
+  }
+
+  pattern                         = each.value.pattern
+  enforce_admins                  = try(each.value.enforce_admins, null)
+  require_conversation_resolution = try(each.value.require_conversation_resolution, null)
+  required_linear_history         = try(each.value.required_linear_history, null)
+  required_signed_commits         = try(each.value.require_signed_commits, null)
+  force_push_bypassers            = try(each.value.force_push_bypassers, null)
+  allows_deletions                = try(each.value.allows_deletions, null)
+  allows_force_pushes             = try(each.value.allows_force_pushes, null)
+  lock_branch                     = try(each.value.lock_branch, null)
+
+  required_pull_request_reviews = try(each.value.required_pull_request_reviews, {})
+  required_status_checks        = try(each.value.required_status_checks, {})
+  restrict_pushes               = try(each.value.restrict_pushes, {})
+
+  depends_on = [
+    module.branches
+  ]
 }

@@ -7,7 +7,11 @@ output "admins" {
 }
 
 output "branch_protection" {
-  value = github_branch_protection.this
+  value = module.branch_protection_policies
+}
+
+output "branches" {
+  value = module.branches
 }
 
 output "maintainers" {

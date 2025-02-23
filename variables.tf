@@ -39,15 +39,6 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "environments" {
-  type        = map(string)
-  default     = {}
-  description = <<DESCRIPTION
-A map of environment names.
-DESCRIPTION
-  nullable    = false
-}
-
 variable "name_templates" {
   type        = string
   default     = null
