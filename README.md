@@ -24,7 +24,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [github_branch_protection.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/branch_protection) (resource)
 - [github_repository.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
 - [github_team_repository.admin](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
 - [github_team_repository.maintain](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
@@ -73,38 +72,91 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_branches"></a> [branches](#input\_branches)
+### <a name="input_branch_protection_policies"></a> [branch\_protection\_policies](#input\_branch\_protection\_policies)
 
-Description: Map of branches to be created along with their branch protection policies.
+Description: A map of branch protection policies to apply to the branches. The map key is the branch name.
+
+- `enforce_admins` - (Optional) Boolean, setting this to true enforces status checks for repository administrators.
+- `required_signed_commits` - (Optional) Boolean, setting this to true requires all commits to be signed with GPG.
+- `required_linear_history` - (Optional) Boolean, setting this to true enforces a linear commit Git history, which prevents anyone from pushing merge commits to a branch.
+- `require_conversation_resolution` - (Optional) Boolean, setting this to true requires all conversations on code must be resolved before a pull request can be merged.
+- `allows_deletions` - (Optional) Boolean, setting this to true allows the branch to be deleted.
+- `allows_force_pushes` - (Optional) Boolean, setting this to true allows force pushes on the branch to everyone. Set it to false if you specify `force_push_bypassers`.
+- `lock_branch` - (Optional) Boolean, setting this to true will make the branch read-only and prevent any pushes to it. Defaults to false.
+- `force_push_bypassers` - (Optional) List of actor Names/IDs that are allowed to bypass force push restrictions. Actor names must either begin with a "/" for users or the organization name followed by a "/" for teams. If the list is not empty, `allows_force_pushes` should be set to false.
+
+- `required_status_checks` - (Optional) Enforce restrictions for required status checks.
+  - `strict` - (Optional) Boolean, setting this to true requires branches to be up to date before merging.
+  - `contexts` - (Optional) List of status check contexts that must pass before merging.
+
+- `required_pull_request_reviews` - (Optional) Enforce restrictions for pull request reviews.
+  - `dismiss_stale_reviews` - (Optional) Boolean, setting this to true dismisses stale pull request approvals when new commits are pushed.
+  - `restrict_dismissals` - (Optional) Boolean, setting this to true restricts who can dismiss pull request reviews.
+  - `dismissal_restrictions` - (Optional) List of users or teams that can dismiss pull request reviews.
+  - `pull_request_bypassers` - (Optional) List of actor Names/IDs that are allowed to bypass pull request review restrictions.
+  - `require_code_owner_reviews` - (Optional) Boolean, setting this to true requires an approving review from a code owner.
+  - `required_approving_review_count` - (Optional) Number of approving reviews required before merging.
+  - `require_last_push_approval` - (Optional) Boolean, setting this to true requires the most recent push to be approved by someone other than the pusher.
+
+- `restrict_pushes` - (Optional) Restrict pushes to matching branches.
+  - `users` - (Optional) List of users who can push to the branch.
+  - `teams` - (Optional) List of teams who can push to the branch.
+  - `apps` - (Optional) List of apps who can push to the branch.
 
 Type:
 
 ```hcl
 map(object({
-    name               = string
-    protection_enabled = bool
-    protection = object({
-      enforce_admins                  = bool
-      required_linear_history         = bool
-      require_conversation_resolution = bool
-      required_pull_request_reviews = object({
-        dismiss_stale_reviews           = bool
-        restrict_dismissals             = bool
-        required_approving_review_count = number
-      })
-    })
+    pattern = string
+
+    enforce_admins                  = optional(bool, true)
+    required_signed_commits         = optional(bool)
+    required_linear_history         = optional(bool)
+    require_conversation_resolution = optional(bool, true)
+    force_push_bypassers            = optional(list(string))
+    allows_deletions                = optional(bool)
+    allows_force_pushes             = optional(bool, false)
+    lock_branch                     = optional(bool, false)
+
+    required_status_checks = optional(object({
+      strict   = optional(bool, false)
+      contexts = optional(list(string))
+    }))
+
+    required_pull_request_reviews = optional(object({
+      dismiss_stale_reviews           = optional(bool, true)
+      restrict_dismissals             = bool
+      dismissal_restrictions          = optional(list(string))
+      pull_request_bypassers          = optional(list(string))
+      require_code_owner_reviews      = optional(bool, true)
+      required_approving_review_count = number
+      require_last_push_approval      = optional(bool, true)
+    }))
+
+    restrict_pushes = optional(object({
+      blocks_creations = optional(bool, true)
+      push_allowances  = optional(list(string))
+    }))
   }))
 ```
 
 Default: `{}`
 
-### <a name="input_create_branch_policies"></a> [create\_branch\_policies](#input\_create\_branch\_policies)
+### <a name="input_branches"></a> [branches](#input\_branches)
 
-Description: Whether to create branch policies.
+Description: Map of branches to be created.
 
-Type: `bool`
+Type:
 
-Default: `false`
+```hcl
+map(object({
+    name          = string
+    source_branch = optional(string)
+    source_sha    = optional(string)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_description"></a> [description](#input\_description)
 
@@ -126,9 +178,17 @@ Default: `true`
 
 ### <a name="input_environments"></a> [environments](#input\_environments)
 
-Description: A map of environment names.
+Description: Map of environments to be created along with their associated github action secrets and variables.
 
-Type: `map(string)`
+Type:
+
+```hcl
+map(object({
+    name      = string
+    secrets   = map(string)
+    variables = map(string)
+  }))
+```
 
 Default: `{}`
 
@@ -354,6 +414,10 @@ Description: n/a
 
 Description: n/a
 
+### <a name="output_branches"></a> [branches](#output\_branches)
+
+Description: n/a
+
 ### <a name="output_maintainers"></a> [maintainers](#output\_maintainers)
 
 Description: n/a
@@ -372,7 +436,19 @@ Description: n/a
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_branch_protection_policies"></a> [branch\_protection\_policies](#module\_branch\_protection\_policies)
+
+Source: ./modules/branch_protection
+
+Version:
+
+### <a name="module_branches"></a> [branches](#module\_branches)
+
+Source: ./modules/branch
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
