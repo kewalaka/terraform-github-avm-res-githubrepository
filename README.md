@@ -1,9 +1,39 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-github-avm-repository
+# Terraform GitHub Repository module in the style of AVM
 
-This is a module for creating GitHub repository and supporting child resources.
+This is a module for creating GitHub repository and supporting child resources written in the style of Azure Verified Modules.
 
-To test locally, set `GITHUB_OWNER` to your Github organisation or individual user account.
+This has been submitted to the AVM team for consideration and should be considered unofficial.
+
+The intention is to separately develop another module for GitHub Organizations and related components (terraform-github-avm-githuborganization).
+
+## Features
+
+- Create and manage GitHub repositories, branches & environments
+- Apply classic branches protection
+- Manage variables & secrets at the repository and environment scope.
+- Enable or disable features such as issues, discussions, wiki, etc.
+
+TODO:
+
+- Rulesets
+- Testing for adding team permissions
+- Testing for adding files & using templates
+- OIDC subject mapping
+- Associating runner groups and apps
+- Managing collaborators
+
+.. probably more I haven't thought of yet!
+
+## Testing locally
+
+To test locally:
+
+- set `GITHUB_OWNER` to your Github organisation or individual user account.
+- install the GitHub CLI
+- log in use `gh auth`
+- fetch the token using `gh auth status -t`
+- set `GITHUB_TOKEN` to the token value returned by the previous command.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -180,13 +210,32 @@ Default: `true`
 
 Description: Map of environments to be created along with their associated github action secrets and variables.
 
+- name: Name of the environment
+- reviewers: Up to 6 users and teams that are allowed to review deployments to this environment
+- deployment\_branch\_policy: Object containing the deployment branch policy
+  - protected\_branches: Boolean indicating if the branch is protected
+  - custom\_branch\_policies: Boolean indicating if custom branch policies are enabled
+- deployment\_policy\_branch\_pattern: Branch pattern for the deployment policy
+- deployment\_policy\_tag\_pattern: Tag pattern for the deployment policy
+
 Type:
 
 ```hcl
 map(object({
-    name      = string
-    secrets   = map(string)
-    variables = map(string)
+    name                = string
+    wait_timer          = optional(number)
+    can_admins_bypass   = optional(bool, true)
+    prevent_self_review = optional(bool, true)
+    reviewers = optional(object({
+      users = optional(list(string))
+      teams = optional(list(string))
+    }))
+    deployment_branch_policy = object({
+      protected_branches     = optional(bool)
+      custom_branch_policies = optional(bool)
+    })
+    deployment_policy_branch_pattern = optional(string)
+    deployment_policy_tag_pattern    = optional(string)
   }))
 ```
 
@@ -302,6 +351,32 @@ Type: `list(string)`
 
 Default: `[]`
 
+### <a name="input_secrets"></a> [secrets](#input\_secrets)
+
+Description: Map of github action secrets to be created.
+
+- `name` - The name of the secret.
+- `plaintext_value` - The plaintext value of the secret.
+- `encrypted_value` - The encrypted value of the secret.
+- `environment` - The environment to create the secret in. If not set, the secret will be created at the repository level.
+- `is_dependabot_secret` - If set to true, the secret will be created at the repository level and will be used by dependabot.
+- `is_codespaces_secret` - If set to true, the secret will be created at the repository level and will be used by codespaces.
+
+Type:
+
+```hcl
+map(object({
+    name                 = string
+    plaintext_value      = optional(string)
+    encrypted_value      = optional(string)
+    environment          = optional(string)
+    is_dependabot_secret = optional(bool, false)
+    is_codespaces_secret = optional(bool, false)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_team_access"></a> [team\_access](#input\_team\_access)
 
 Description: Team access types for created repository
@@ -314,19 +389,11 @@ object({
     maintain = optional(list(string))
     push     = optional(list(string))
     pull     = optional(list(string))
+    triage   = optional(list(string))
   })
 ```
 
-Default:
-
-```json
-{
-  "admin": [],
-  "maintain": [],
-  "pull": [],
-  "push": []
-}
-```
+Default: `{}`
 
 ### <a name="input_template_repository_files"></a> [template\_repository\_files](#input\_template\_repository\_files)
 
@@ -365,6 +432,26 @@ Description: Whether to use the template repository.
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_variables"></a> [variables](#input\_variables)
+
+Description: Map of github action variables to be created.
+
+- `name` - The name of the variable.
+- `value` - The value of the variable.
+- `environment` - The environment to create the variable in. If not set, the variable will be created at the repository level.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    value       = string
+    environment = optional(string)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_visibility"></a> [visibility](#input\_visibility)
 
@@ -447,6 +534,18 @@ Version:
 ### <a name="module_branches"></a> [branches](#module\_branches)
 
 Source: ./modules/branch
+
+Version:
+
+### <a name="module_environments"></a> [environments](#module\_environments)
+
+Source: ./modules/environment
+
+Version:
+
+### <a name="module_secrets_and_variables"></a> [secrets\_and\_variables](#module\_secrets\_and\_variables)
+
+Source: ./modules/secrets_and_variables
 
 Version:
 

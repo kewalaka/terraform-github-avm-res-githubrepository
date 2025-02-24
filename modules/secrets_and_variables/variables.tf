@@ -1,3 +1,11 @@
+variable "repository" {
+  type = object({
+    id = string
+  })
+  description = "The id of the repository."
+  nullable    = false
+}
+
 variable "secrets" {
   type = map(object({
     name                 = string
@@ -7,10 +15,11 @@ variable "secrets" {
     is_dependabot_secret = optional(bool, false)
     is_codespaces_secret = optional(bool, false)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of github action secrets to be created.
 
-- `name` - The name of the secret.
+ - `name` - The name of the secret.
 - `plaintext_value` - The plaintext value of the secret.
 - `encrypted_value` - The encrypted value of the secret.
 - `environment` - The environment to create the secret in. If not set, the secret will be created at the repository level.
@@ -18,8 +27,8 @@ Map of github action secrets to be created.
 - `is_codespaces_secret` - If set to true, the secret will be created at the repository level and will be used by codespaces.
 
 DESCRIPTION
-  default     = {}
   nullable    = false
+
   validation {
     condition = alltrue([
       for secret in var.secrets : (
@@ -32,7 +41,7 @@ DESCRIPTION
         )
       )
     ])
-    error_message = "If `is_dependabot_secret` or `is_codespaces_secret` is set, then `environment` must be unset, as these are repository level secrets."
+    error_message = "For each secret, `environment` must be null if either `is_dependabot_secret` or `is_codespaces_secret` is set to `true`, as dependabot and codespaces are repository-level secrets."
   }
   validation {
     condition = alltrue([
@@ -42,7 +51,7 @@ DESCRIPTION
         secret.is_codespaces_secret == false || secret.is_codespaces_secret == null
       )
     ])
-    error_message = "Only one of `is_dependabot_secret` or `is_codespaces_secret` can be set per secret."
+    error_message = "For each secret, only `is_dependabot_secret` or `is_codespaces_secret` may be `true` at the same time."
   }
 }
 
@@ -52,6 +61,7 @@ variable "variables" {
     value       = string
     environment = optional(string)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of github action variables to be created.
 
@@ -60,7 +70,5 @@ Map of github action variables to be created.
 - `environment` - The environment to create the variable in. If not set, the variable will be created at the repository level.
 
 DESCRIPTION
-
-  default  = {}
-  nullable = false
+  nullable    = false
 }

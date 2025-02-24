@@ -91,14 +91,10 @@ variable "team_access" {
     maintain = optional(list(string))
     push     = optional(list(string))
     pull     = optional(list(string))
+    triage   = optional(list(string))
   })
   description = "Team access types for created repository"
-  default = {
-    admin    = []
-    maintain = []
-    push     = []
-    pull     = []
-  }
+  default     = {}
 }
 
 variable "archive_on_destroy" {

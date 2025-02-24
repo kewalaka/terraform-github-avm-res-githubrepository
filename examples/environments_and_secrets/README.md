@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# GitHub repository with branches and branch protection
+# GitHub repository with environments and secrets
 
-This deploys the module and has a starter for exercising branches.  TODO needs more coverage.
+This deploys the module and has a starter for exercising environments & secrets.  TODO more coverage required.
 
 ```hcl
 terraform {
@@ -39,23 +39,31 @@ module "github_repository" {
   vulnerability_alerts = false
   archive_on_destroy   = false
 
-  branches = {
+  environments = {
     "dev" = {
-      name          = "dev"
-      source_branch = "main"
+      name = "dev"
+      reviewers = {
+        users = [
+          "kewalaka",
+        ]
+      }
     }
   }
 
-  branch_protection_policies = {
-    main = {
-      pattern        = "main"
-      enforce_admins = true
-    }
-    dev = {
-      pattern             = "dev"
-      allows_force_pushes = true
+  secrets = {
+    "deploy_secret" = {
+      name      = "DEPLOY_SECRET"
+      plaintext = "super_secret"
     }
   }
+
+  variables = {
+    "deploy_variable" = {
+      name  = "DEPLOY_VARIABLE"
+      value = "not_a_secret"
+    }
+  }
+
 }
 ```
 
