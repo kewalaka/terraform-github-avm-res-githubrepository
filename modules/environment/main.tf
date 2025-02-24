@@ -9,12 +9,11 @@ resource "github_repository_environment" "this" {
   prevent_self_review = var.prevent_self_review
 
   dynamic "reviewers" {
-    for_each = var.reviewers
+    for_each = var.reviewers != null ? [var.reviewers] : []
     content {
       users = reviewers.value.users
       teams = reviewers.value.teams
     }
-
   }
 
   deployment_branch_policy {
@@ -25,6 +24,7 @@ resource "github_repository_environment" "this" {
 }
 
 resource "github_repository_environment_deployment_policy" "this" {
+  count = var.deployment_policy_branch_pattern != null || var.deployment_policy_tag_pattern != null ? 1 : 0
 
   repository  = var.repository.id
   environment = var.name

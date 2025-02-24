@@ -26,6 +26,10 @@ resource "random_pet" "repo_name" {
   length = 2
 }
 
+data "github_user" "current" {
+  username = "kewalaka"
+}
+
 # This is the module call
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
@@ -44,7 +48,7 @@ module "github_repository" {
       name = "dev"
       reviewers = {
         users = [
-          "kewalaka",
+          data.github_user.current.id,
         ]
       }
     }
@@ -85,6 +89,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
+- [github_user.current](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/user) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

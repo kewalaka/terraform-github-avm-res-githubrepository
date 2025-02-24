@@ -20,6 +20,10 @@ resource "random_pet" "repo_name" {
   length = 2
 }
 
+data "github_user" "current" {
+  username = "kewalaka"
+}
+
 # This is the module call
 # Do not specify location here due to the randomization above.
 # Leaving location as `null` will cause the module to use the resource group location
@@ -38,7 +42,7 @@ module "github_repository" {
       name = "dev"
       reviewers = {
         users = [
-          "kewalaka",
+          data.github_user.current.id,
         ]
       }
     }

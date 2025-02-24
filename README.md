@@ -227,13 +227,13 @@ map(object({
     can_admins_bypass   = optional(bool, true)
     prevent_self_review = optional(bool, true)
     reviewers = optional(object({
-      users = optional(list(string))
-      teams = optional(list(string))
+      users = optional(list(number))
+      teams = optional(list(number))
     }))
-    deployment_branch_policy = object({
+    deployment_branch_policy = optional(object({
       protected_branches     = optional(bool)
       custom_branch_policies = optional(bool)
-    })
+    }))
     deployment_policy_branch_pattern = optional(string)
     deployment_policy_tag_pattern    = optional(string)
   }))
