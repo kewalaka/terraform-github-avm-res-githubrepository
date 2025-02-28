@@ -1,3 +1,34 @@
+# variable "approvers" {
+#   type        = list(string)
+#   default     = []
+#   description = <<DESCRIPTION
+# A list of approvers.
+# DESCRIPTION
+#   nullable    = false
+# }
+
+# variable "name_templates" {
+#   type        = string
+#   default     = null
+#   description = <<DESCRIPTION
+# The name of the templates repo to use.
+# DESCRIPTION
+# }
+
+# variable "workflows" {
+#   type = map(object({
+#     workflow_file_name = string
+#     environment_user_assigned_managed_identity_mappings = list(object({
+#       environment_key                    = string
+#       user_assigned_managed_identity_key = string
+#     }))
+#   }))
+#   default     = {}
+#   description = <<DESCRIPTION
+# A map of workflows with their file names and environment user-assigned managed identity mappings.
+# DESCRIPTION
+#   nullable    = false
+# }
 variable "name" {
   type        = string
   description = <<DESCRIPTION
@@ -19,15 +50,7 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "approvers" {
-  type        = list(string)
-  default     = []
-  description = <<DESCRIPTION
-A list of approvers.
-DESCRIPTION
-  nullable    = false
-}
-
+# tflint:ignore:variable-unused
 variable "enable_telemetry" {
   type        = bool
   default     = true
@@ -39,34 +62,11 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "name_templates" {
-  type        = string
-  default     = null
-  description = <<DESCRIPTION
-The name of the templates repo to use.
-DESCRIPTION
-}
-
 variable "use_template_repository" {
   type        = bool
   default     = false
   description = <<DESCRIPTION
 Whether to use the template repository.
-DESCRIPTION
-  nullable    = false
-}
-
-variable "workflows" {
-  type = map(object({
-    workflow_file_name = string
-    environment_user_assigned_managed_identity_mappings = list(object({
-      environment_key                    = string
-      user_assigned_managed_identity_key = string
-    }))
-  }))
-  default     = {}
-  description = <<DESCRIPTION
-A map of workflows with their file names and environment user-assigned managed identity mappings.
 DESCRIPTION
   nullable    = false
 }

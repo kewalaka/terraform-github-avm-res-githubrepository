@@ -36,6 +36,7 @@ To test locally:
 - set `GITHUB_TOKEN` to the token value returned by the previous command.
 
 <!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD013 -->  
 ## Requirements
 
 The following requirements are needed by this module:
@@ -50,6 +51,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
+<!-- markdownlint-disable MD013 -->
 ## Resources
 
 The following resources are used by this module:
@@ -85,14 +87,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_approvers"></a> [approvers](#input\_approvers)
-
-Description: A list of approvers.
-
-Type: `list(string)`
-
-Default: `[]`
 
 ### <a name="input_archive_on_destroy"></a> [archive\_on\_destroy](#input\_archive\_on\_destroy)
 
@@ -289,14 +283,6 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_name_templates"></a> [name\_templates](#input\_name\_templates)
-
-Description: The name of the templates repo to use.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_pages"></a> [pages](#input\_pages)
 
 Description: The GitHub Pages configuration for the repository.
@@ -312,44 +298,6 @@ object({
 ```
 
 Default: `null`
-
-### <a name="input_repository_files"></a> [repository\_files](#input\_repository\_files)
-
-Description: A map of repository files with their content.
-
-Type:
-
-```hcl
-map(object({
-    content = string
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_repository_secrets"></a> [repository\_secrets](#input\_repository\_secrets)
-
-Description: Map of github action secrets to be created.
-
-Type: `map(string)`
-
-Default: `{}`
-
-### <a name="input_repository_variables"></a> [repository\_variables](#input\_repository\_variables)
-
-Description: Map of github action variables to be created.
-
-Type: `map(string)`
-
-Default: `{}`
-
-### <a name="input_required_checks"></a> [required\_checks](#input\_required\_checks)
-
-Description: List of required checks
-
-Type: `list(string)`
-
-Default: `[]`
 
 ### <a name="input_secrets"></a> [secrets](#input\_secrets)
 
@@ -395,23 +343,9 @@ object({
 
 Default: `{}`
 
-### <a name="input_template_repository_files"></a> [template\_repository\_files](#input\_template\_repository\_files)
-
-Description: A map of template repository files with their content.
-
-Type:
-
-```hcl
-map(object({
-    content = string
-  }))
-```
-
-Default: `{}`
-
 ### <a name="input_topics"></a> [topics](#input\_topics)
 
-Description: n/a
+Description: values to use as topics for the repository
 
 Type: `list(string)`
 
@@ -471,55 +405,41 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_workflows"></a> [workflows](#input\_workflows)
-
-Description: A map of workflows with their file names and environment user-assigned managed identity mappings.
-
-Type:
-
-```hcl
-map(object({
-    workflow_file_name = string
-    environment_user_assigned_managed_identity_mappings = list(object({
-      environment_key                    = string
-      user_assigned_managed_identity_key = string
-    }))
-  }))
-```
-
-Default: `{}`
-
 ## Outputs
 
 The following outputs are exported:
 
 ### <a name="output_admins"></a> [admins](#output\_admins)
 
-Description: n/a
+Description: Teams with admin permissions to the repository.
 
 ### <a name="output_branch_protection"></a> [branch\_protection](#output\_branch\_protection)
 
-Description: n/a
+Description: Branch protection policies applied to the repository.
 
 ### <a name="output_branches"></a> [branches](#output\_branches)
 
-Description: n/a
+Description: Branch configurations created by the branches module.
 
 ### <a name="output_maintainers"></a> [maintainers](#output\_maintainers)
 
-Description: n/a
+Description: Teams with maintain permissions to the repository.
 
 ### <a name="output_pullers"></a> [pullers](#output\_pullers)
 
-Description: n/a
+Description: Teams with read permissions (pull) to the repository.
 
 ### <a name="output_pushers"></a> [pushers](#output\_pushers)
 
-Description: n/a
+Description: Teams with write permissions (push) to the repository.
 
 ### <a name="output_repository"></a> [repository](#output\_repository)
 
-Description: n/a
+Description: The GitHub repository resource created by this module.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The ID of the repository.
 
 ## Modules
 
@@ -543,12 +463,19 @@ Source: ./modules/environment
 
 Version:
 
-### <a name="module_secrets_and_variables"></a> [secrets\_and\_variables](#module\_secrets\_and\_variables)
+### <a name="module_secret"></a> [secret](#module\_secret)
 
-Source: ./modules/secrets_and_variables
+Source: ./modules/secret
 
 Version:
 
+### <a name="module_variable"></a> [variable](#module\_variable)
+
+Source: ./modules/variable
+
+Version:
+
+<!-- markdownlint-disable-next-line MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 

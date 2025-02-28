@@ -1,16 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
-# GitHub repository with branches and branch protection
+# Testing submodules with an existing repository
 
-This deploys the module and has a starter for exercising branches.  TODO needs more coverage.
+This example is designed to test the various submodules being called independently.
 
 ```hcl
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
     # modtm = {
     #   source  = "azure/modtm"
     #   version = "~> 0.3"
@@ -26,32 +26,38 @@ resource "random_pet" "repo_name" {
   length = 2
 }
 
-module "github_repository" {
-  source = "../../"
-
+resource "github_repository" "this" {
   name                 = random_pet.repo_name.id
-  organization_name    = "kewalaka-org"
   visibility           = "public"
-  vulnerability_alerts = false
   archive_on_destroy   = false
+  vulnerability_alerts = false
+}
 
-  branches = {
-    "dev" = {
-      name          = "dev"
-      source_branch = "main"
+locals {
+  secrets = {
+    repo1 = {
+      name            = "REPO_SECRET_1"
+      plaintext_value = "supersecretvalue"
+    }
+    env1 = {
+      name            = "ENV_SECRET_1"
+      plaintext_value = "anothersecretvalue"
+      environment     = "production"
     }
   }
+}
 
-  branch_protection_policies = {
-    main = {
-      pattern        = "main"
-      enforce_admins = true
-    }
-    dev = {
-      pattern             = "dev"
-      allows_force_pushes = true
-    }
-  }
+module "avm_res_githubrepository_secret" {
+  source = "../..//modules/secret"
+
+  for_each = local.secrets
+
+  repository = { id = github_repository.this.id }
+
+  name            = each.value.name
+  plaintext_value = try(each.value.plaintext_value, null)
+  encrypted_value = try(each.value.encrypted_value, null)
+  environment     = try(each.value.environmnet, null)
 }
 ```
 
@@ -62,6 +68,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
 
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 <!-- markdownlint-disable MD013 -->
@@ -69,6 +77,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [github_repository.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
 - [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -88,9 +97,9 @@ No outputs.
 
 The following Modules are called:
 
-### <a name="module_github_repository"></a> [github\_repository](#module\_github\_repository)
+### <a name="module_avm_res_githubrepository_secret"></a> [avm\_res\_githubrepository\_secret](#module\_avm\_res\_githubrepository\_secret)
 
-Source: ../../
+Source: ../..//modules/secret
 
 Version:
 

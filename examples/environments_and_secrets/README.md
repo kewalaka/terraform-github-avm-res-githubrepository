@@ -11,10 +11,10 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.5.0"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
+    # modtm = {
+    #   source  = "azure/modtm"
+    #   version = "~> 0.3"
+    # }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -30,10 +30,6 @@ data "github_user" "current" {
   username = "kewalaka"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "github_repository" {
   source = "../../"
 
@@ -80,10 +76,9 @@ The following requirements are needed by this module:
 
 - <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
+<!-- markdownlint-disable MD013 -->
 ## Resources
 
 The following resources are used by this module:
@@ -98,17 +93,7 @@ No required inputs.
 
 ## Optional Inputs
 
-The following input variables are optional (have default values):
-
-### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
-
-Description: This variable controls whether or not telemetry is enabled for the module.  
-For more information see <https://aka.ms/avm/telemetryinfo>.  
-If it is set to false, then no telemetry will be collected.
-
-Type: `bool`
-
-Default: `true`
+No optional inputs.
 
 ## Outputs
 
@@ -124,6 +109,7 @@ Source: ../../
 
 Version:
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 

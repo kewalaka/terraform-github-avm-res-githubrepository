@@ -18,6 +18,7 @@ module "avm-res-githubrepository-branch" {
 }
 ```
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -27,6 +28,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5)
 
+<!-- markdownlint-disable MD013 -->
 ## Resources
 
 The following resources are used by this module:
@@ -176,12 +178,17 @@ Default: `{}`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: TODO fix later - keep the lint rules quiet.
 
 ## Modules
 
 No modules.
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 

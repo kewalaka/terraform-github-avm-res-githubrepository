@@ -5,10 +5,10 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.5.0"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
+    # modtm = {
+    #   source  = "azure/modtm"
+    #   version = "~> 0.3"
+    # }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -24,10 +24,6 @@ data "github_user" "current" {
   username = "kewalaka"
 }
 
-# This is the module call
-# Do not specify location here due to the randomization above.
-# Leaving location as `null` will cause the module to use the resource group location
-# with a data source.
 module "github_repository" {
   source = "../../"
 
