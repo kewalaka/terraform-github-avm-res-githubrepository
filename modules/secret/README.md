@@ -137,11 +137,7 @@ Default: `null`
 
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
-
-Description: TODO fix later - keep the lint rules quiet.
+No outputs.
 
 ## Modules
 
