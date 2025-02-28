@@ -1,11 +1,42 @@
 <!-- BEGIN_TF_DOCS -->
-# terraform-github-avm-repository
+# Terraform GitHub Repository module in the style of AVM
 
-This is a module for creating GitHub repository and supporting child resources.
+This is a module for creating GitHub repository and supporting child resources written in the style of Azure Verified Modules.
 
-To test locally, set `GITHUB_OWNER` to your Github organisation or individual user account.
+This has been submitted to the AVM team for consideration and should be considered unofficial.
+
+The intention is to separately develop another module for GitHub Organizations and related components (terraform-github-avm-githuborganization).
+
+## Features
+
+- Create and manage GitHub repositories, branches & environments
+- Apply classic branches protection
+- Manage variables & secrets at the repository and environment scope.
+- Enable or disable features such as issues, discussions, wiki, etc.
+
+TODO:
+
+- Rulesets
+- Testing for adding team permissions
+- Testing for adding files & using templates
+- OIDC subject mapping
+- Associating runner groups and apps
+- Managing collaborators
+
+.. probably more I haven't thought of yet!
+
+## Testing locally
+
+To test locally:
+
+- set `GITHUB_OWNER` to your Github organisation or individual user account.
+- install the GitHub CLI
+- log in use `gh auth`
+- fetch the token using `gh auth status -t`
+- set `GITHUB_TOKEN` to the token value returned by the previous command.
 
 <!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD013 -->  
 ## Requirements
 
 The following requirements are needed by this module:
@@ -20,6 +51,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
+<!-- markdownlint-disable MD013 -->
 ## Resources
 
 The following resources are used by this module:
@@ -55,14 +87,6 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
-
-### <a name="input_approvers"></a> [approvers](#input\_approvers)
-
-Description: A list of approvers.
-
-Type: `list(string)`
-
-Default: `[]`
 
 ### <a name="input_archive_on_destroy"></a> [archive\_on\_destroy](#input\_archive\_on\_destroy)
 
@@ -180,13 +204,32 @@ Default: `true`
 
 Description: Map of environments to be created along with their associated github action secrets and variables.
 
+- name: Name of the environment
+- reviewers: Up to 6 users and teams that are allowed to review deployments to this environment
+- deployment\_branch\_policy: Object containing the deployment branch policy
+  - protected\_branches: Boolean indicating if the branch is protected
+  - custom\_branch\_policies: Boolean indicating if custom branch policies are enabled
+- deployment\_policy\_branch\_pattern: Branch pattern for the deployment policy
+- deployment\_policy\_tag\_pattern: Tag pattern for the deployment policy
+
 Type:
 
 ```hcl
 map(object({
-    name      = string
-    secrets   = map(string)
-    variables = map(string)
+    name                = string
+    wait_timer          = optional(number)
+    can_admins_bypass   = optional(bool, true)
+    prevent_self_review = optional(bool, true)
+    reviewers = optional(object({
+      users = optional(list(number))
+      teams = optional(list(number))
+    }))
+    deployment_branch_policy = optional(object({
+      protected_branches     = optional(bool)
+      custom_branch_policies = optional(bool)
+    }))
+    deployment_policy_branch_pattern = optional(string)
+    deployment_policy_tag_pattern    = optional(string)
   }))
 ```
 
@@ -240,14 +283,6 @@ Type: `string`
 
 Default: `""`
 
-### <a name="input_name_templates"></a> [name\_templates](#input\_name\_templates)
-
-Description: The name of the templates repo to use.
-
-Type: `string`
-
-Default: `null`
-
 ### <a name="input_pages"></a> [pages](#input\_pages)
 
 Description: The GitHub Pages configuration for the repository.
@@ -264,43 +299,31 @@ object({
 
 Default: `null`
 
-### <a name="input_repository_files"></a> [repository\_files](#input\_repository\_files)
+### <a name="input_secrets"></a> [secrets](#input\_secrets)
 
-Description: A map of repository files with their content.
+Description: Map of github action secrets to be created.
+
+- `name` - The name of the secret.
+- `plaintext_value` - The plaintext value of the secret.
+- `encrypted_value` - The encrypted value of the secret.
+- `environment` - The environment to create the secret in. If not set, the secret will be created at the repository level.
+- `is_dependabot_secret` - If set to true, the secret will be created at the repository level and will be used by dependabot.
+- `is_codespaces_secret` - If set to true, the secret will be created at the repository level and will be used by codespaces.
 
 Type:
 
 ```hcl
 map(object({
-    content = string
+    name                 = string
+    plaintext_value      = optional(string)
+    encrypted_value      = optional(string)
+    environment          = optional(string)
+    is_dependabot_secret = optional(bool, false)
+    is_codespaces_secret = optional(bool, false)
   }))
 ```
 
 Default: `{}`
-
-### <a name="input_repository_secrets"></a> [repository\_secrets](#input\_repository\_secrets)
-
-Description: Map of github action secrets to be created.
-
-Type: `map(string)`
-
-Default: `{}`
-
-### <a name="input_repository_variables"></a> [repository\_variables](#input\_repository\_variables)
-
-Description: Map of github action variables to be created.
-
-Type: `map(string)`
-
-Default: `{}`
-
-### <a name="input_required_checks"></a> [required\_checks](#input\_required\_checks)
-
-Description: List of required checks
-
-Type: `list(string)`
-
-Default: `[]`
 
 ### <a name="input_team_access"></a> [team\_access](#input\_team\_access)
 
@@ -314,37 +337,15 @@ object({
     maintain = optional(list(string))
     push     = optional(list(string))
     pull     = optional(list(string))
+    triage   = optional(list(string))
   })
-```
-
-Default:
-
-```json
-{
-  "admin": [],
-  "maintain": [],
-  "pull": [],
-  "push": []
-}
-```
-
-### <a name="input_template_repository_files"></a> [template\_repository\_files](#input\_template\_repository\_files)
-
-Description: A map of template repository files with their content.
-
-Type:
-
-```hcl
-map(object({
-    content = string
-  }))
 ```
 
 Default: `{}`
 
 ### <a name="input_topics"></a> [topics](#input\_topics)
 
-Description: n/a
+Description: values to use as topics for the repository
 
 Type: `list(string)`
 
@@ -366,6 +367,26 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_variables"></a> [variables](#input\_variables)
+
+Description: Map of github action variables to be created.
+
+- `name` - The name of the variable.
+- `value` - The value of the variable.
+- `environment` - The environment to create the variable in. If not set, the variable will be created at the repository level.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    value       = string
+    environment = optional(string)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_visibility"></a> [visibility](#input\_visibility)
 
 Description: The visibility of the repository.  Can be "public", "internal", or "private".
@@ -384,55 +405,41 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_workflows"></a> [workflows](#input\_workflows)
-
-Description: A map of workflows with their file names and environment user-assigned managed identity mappings.
-
-Type:
-
-```hcl
-map(object({
-    workflow_file_name = string
-    environment_user_assigned_managed_identity_mappings = list(object({
-      environment_key                    = string
-      user_assigned_managed_identity_key = string
-    }))
-  }))
-```
-
-Default: `{}`
-
 ## Outputs
 
 The following outputs are exported:
 
 ### <a name="output_admins"></a> [admins](#output\_admins)
 
-Description: n/a
+Description: Teams with admin permissions to the repository.
 
 ### <a name="output_branch_protection"></a> [branch\_protection](#output\_branch\_protection)
 
-Description: n/a
+Description: Branch protection policies applied to the repository.
 
 ### <a name="output_branches"></a> [branches](#output\_branches)
 
-Description: n/a
+Description: Branch configurations created by the branches module.
 
 ### <a name="output_maintainers"></a> [maintainers](#output\_maintainers)
 
-Description: n/a
+Description: Teams with maintain permissions to the repository.
 
 ### <a name="output_pullers"></a> [pullers](#output\_pullers)
 
-Description: n/a
+Description: Teams with read permissions (pull) to the repository.
 
 ### <a name="output_pushers"></a> [pushers](#output\_pushers)
 
-Description: n/a
+Description: Teams with write permissions (push) to the repository.
 
 ### <a name="output_repository"></a> [repository](#output\_repository)
 
-Description: n/a
+Description: The GitHub repository resource created by this module.
+
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The ID of the repository.
 
 ## Modules
 
@@ -450,6 +457,25 @@ Source: ./modules/branch
 
 Version:
 
+### <a name="module_environments"></a> [environments](#module\_environments)
+
+Source: ./modules/environment
+
+Version:
+
+### <a name="module_secret"></a> [secret](#module\_secret)
+
+Source: ./modules/secret
+
+Version:
+
+### <a name="module_variable"></a> [variable](#module\_variable)
+
+Source: ./modules/variable
+
+Version:
+
+<!-- markdownlint-disable-next-line MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 

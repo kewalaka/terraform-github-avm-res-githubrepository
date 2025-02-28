@@ -1,24 +1,24 @@
-variable "repository_files" {
-  type = map(object({
-    content = string
-  }))
-  description = <<DESCRIPTION
-A map of repository files with their content.
-DESCRIPTION
-  default     = {}
-  nullable    = false
-}
+# variable "repository_files" {
+#   type = map(object({
+#     content = string
+#   }))
+#   description = <<DESCRIPTION
+# A map of repository files with their content.
+# DESCRIPTION
+#   default     = {}
+#   nullable    = false
+# }
 
-variable "template_repository_files" {
-  type = map(object({
-    content = string
-  }))
-  description = <<DESCRIPTION
-A map of template repository files with their content.
-DESCRIPTION
-  default     = {}
-  nullable    = false
-}
+# variable "template_repository_files" {
+#   type = map(object({
+#     content = string
+#   }))
+#   description = <<DESCRIPTION
+# A map of template repository files with their content.
+# DESCRIPTION
+#   default     = {}
+#   nullable    = false
+# }
 
 variable "description" {
   type        = string
@@ -44,11 +44,11 @@ DESCRIPTION
   }
 }
 
-variable "required_checks" {
-  type        = list(string)
-  description = "List of required checks"
-  default     = []
-}
+# variable "required_checks" {
+#   type        = list(string)
+#   description = "List of required checks"
+#   default     = []
+# }
 
 variable "has_discussions" {
   type        = bool
@@ -91,14 +91,10 @@ variable "team_access" {
     maintain = optional(list(string))
     push     = optional(list(string))
     pull     = optional(list(string))
+    triage   = optional(list(string))
   })
   description = "Team access types for created repository"
-  default = {
-    admin    = []
-    maintain = []
-    push     = []
-    pull     = []
-  }
+  default     = {}
 }
 
 variable "archive_on_destroy" {
@@ -114,8 +110,9 @@ variable "homepage_url" {
 }
 
 variable "topics" {
-  type    = list(string)
-  default = []
+  type        = list(string)
+  description = "values to use as topics for the repository"
+  default     = []
 }
 
 variable "type" {

@@ -1,6 +1,6 @@
 # Github Repository Branch Protection Policies Submodule
 
-This module is used to managed branch protection policies inside Github repositories.
+This module is used to manage branch protection policies inside Github repositories.
 
 ## Features
 

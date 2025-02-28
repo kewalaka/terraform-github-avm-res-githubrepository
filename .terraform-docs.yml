@@ -21,8 +21,10 @@ content: |-
   {{ .Header }}
 
   <!-- markdownlint-disable MD033 -->
+  <!-- markdownlint-disable MD013 -->  
   {{ .Requirements }}
 
+  <!-- markdownlint-disable MD013 -->
   {{ .Resources }}
 
   <!-- markdownlint-disable MD013 -->
@@ -32,6 +34,7 @@ content: |-
 
   {{ .Modules }}
 
+  <!-- markdownlint-disable-next-line MD013 -->
   {{ .Footer }}
 
 output:

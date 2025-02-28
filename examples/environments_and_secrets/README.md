@@ -1,16 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
-# GitHub repository with branches and branch protection
+# GitHub repository with environments and secrets
 
-This deploys the module and has a starter for exercising branches.  TODO needs more coverage.
+This deploys the module and has a starter for exercising environments & secrets.  TODO more coverage required.
 
 ```hcl
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
     # modtm = {
     #   source  = "azure/modtm"
     #   version = "~> 0.3"
@@ -26,6 +26,10 @@ resource "random_pet" "repo_name" {
   length = 2
 }
 
+data "github_user" "current" {
+  username = "kewalaka"
+}
+
 module "github_repository" {
   source = "../../"
 
@@ -35,23 +39,31 @@ module "github_repository" {
   vulnerability_alerts = false
   archive_on_destroy   = false
 
-  branches = {
+  environments = {
     "dev" = {
-      name          = "dev"
-      source_branch = "main"
+      name = "dev"
+      reviewers = {
+        users = [
+          data.github_user.current.id,
+        ]
+      }
     }
   }
 
-  branch_protection_policies = {
-    main = {
-      pattern        = "main"
-      enforce_admins = true
-    }
-    dev = {
-      pattern             = "dev"
-      allows_force_pushes = true
+  secrets = {
+    "deploy_secret" = {
+      name      = "DEPLOY_SECRET"
+      plaintext = "super_secret"
     }
   }
+
+  variables = {
+    "deploy_variable" = {
+      name  = "DEPLOY_VARIABLE"
+      value = "not_a_secret"
+    }
+  }
+
 }
 ```
 
@@ -62,6 +74,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
 
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 <!-- markdownlint-disable MD013 -->
@@ -70,6 +84,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
+- [github_user.current](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/user) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

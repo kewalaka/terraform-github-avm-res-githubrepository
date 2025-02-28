@@ -20,9 +20,11 @@ sections:
 content: |-
   {{ .Header }}
 
+  <!-- markdownlint-disable MD013 -->
   <!-- markdownlint-disable MD033 -->
   {{ .Requirements }}
 
+  <!-- markdownlint-disable MD013 -->
   {{ .Resources }}
 
   <!-- markdownlint-disable MD013 -->
@@ -32,6 +34,7 @@ content: |-
 
   {{ .Modules }}
 
+  <!-- markdownlint-disable MD013 -->
   {{ .Footer }}
 
 output:

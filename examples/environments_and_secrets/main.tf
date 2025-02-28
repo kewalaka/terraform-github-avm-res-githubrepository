@@ -1,10 +1,10 @@
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
     # modtm = {
     #   source  = "azure/modtm"
     #   version = "~> 0.3"
@@ -20,6 +20,10 @@ resource "random_pet" "repo_name" {
   length = 2
 }
 
+data "github_user" "current" {
+  username = "kewalaka"
+}
+
 module "github_repository" {
   source = "../../"
 
@@ -29,21 +33,29 @@ module "github_repository" {
   vulnerability_alerts = false
   archive_on_destroy   = false
 
-  branches = {
+  environments = {
     "dev" = {
-      name          = "dev"
-      source_branch = "main"
+      name = "dev"
+      reviewers = {
+        users = [
+          data.github_user.current.id,
+        ]
+      }
     }
   }
 
-  branch_protection_policies = {
-    main = {
-      pattern        = "main"
-      enforce_admins = true
-    }
-    dev = {
-      pattern             = "dev"
-      allows_force_pushes = true
+  secrets = {
+    "deploy_secret" = {
+      name      = "DEPLOY_SECRET"
+      plaintext = "super_secret"
     }
   }
+
+  variables = {
+    "deploy_variable" = {
+      name  = "DEPLOY_VARIABLE"
+      value = "not_a_secret"
+    }
+  }
+
 }

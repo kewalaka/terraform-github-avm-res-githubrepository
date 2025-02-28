@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Github Repository Branch Protection Policies Submodule
 
-This module is used to managed branch protection policies inside Github repositories.
+This module is used to manage branch protection policies inside Github repositories.
 
 ## Features
 
@@ -18,6 +18,7 @@ module "avm-res-githubrepository-branch" {
 }
 ```
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -27,6 +28,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5)
 
+<!-- markdownlint-disable MD013 -->
 ## Resources
 
 The following resources are used by this module:
@@ -182,6 +184,7 @@ No outputs.
 
 No modules.
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 
