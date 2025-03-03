@@ -1,10 +1,10 @@
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
     # modtm = {
     #   source  = "azure/modtm"
     #   version = "~> 0.3"
@@ -14,6 +14,10 @@ terraform {
       version = "~> 3.5"
     }
   }
+}
+
+provider "github" {
+  owner = "kewalaka-org"
 }
 
 resource "random_pet" "repo_name" {
@@ -28,4 +32,18 @@ module "github_repository" {
   visibility           = "private"
   vulnerability_alerts = false
   archive_on_destroy   = false
+
+  use_template_repository = true
+  template = {
+    owner      = "kewalaka-org"
+    repository = "terraform-azurerm-avm-template"
+  }
+
+  files = {
+    "README.md" = {
+      content             = "This is a test to override the existing README.md."
+      file                = "README.md"
+      overwrite_on_create = true
+    }
+  }
 }

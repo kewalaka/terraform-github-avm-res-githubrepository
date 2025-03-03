@@ -1,5 +1,5 @@
 resource "github_repository_file" "this" {
-  repository                      = var.repository_id
+  repository                      = var.repository.id
   file                            = var.file
   content                         = var.content
   branch                          = var.branch
