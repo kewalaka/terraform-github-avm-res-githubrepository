@@ -7,14 +7,6 @@
 #   nullable    = false
 # }
 
-# variable "name_templates" {
-#   type        = string
-#   default     = null
-#   description = <<DESCRIPTION
-# The name of the templates repo to use.
-# DESCRIPTION
-# }
-
 # variable "workflows" {
 #   type = map(object({
 #     workflow_file_name = string
@@ -60,6 +52,23 @@ For more information see <https://aka.ms/avm/telemetryinfo>.
 If it is set to false, then no telemetry will be collected.
 DESCRIPTION
   nullable    = false
+}
+
+variable "template" {
+  type = object({
+    owner                = optional(string)
+    repository           = optional(string)
+    include_all_branches = optional(bool, false)
+  })
+  default     = {}
+  description = <<DESCRIPTION
+The template repository to use when creating the repository.
+
+- `owner` (Optional) - The owner of the template repository.
+- `repository` (Optional) - The name of the template repository.
+- `include_all_branches` (Optional) - Whether to include all branches from the template repository.
+
+DESCRIPTION
 }
 
 variable "use_template_repository" {

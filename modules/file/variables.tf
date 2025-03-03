@@ -10,8 +10,10 @@ variable "file" {
   nullable    = false
 }
 
-variable "repository_id" {
-  type        = string
+variable "repository" {
+  type = object({
+    id = string
+  })
   description = "The id of the repository."
   nullable    = false
 }

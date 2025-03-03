@@ -1,16 +1,17 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Example file and template contents
 
-This deploys the module in its simplest form.
+This deploys the repository and tests adding content from a template and
+individual files.
 
 ```hcl
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
     # modtm = {
     #   source  = "azure/modtm"
     #   version = "~> 0.3"
@@ -20,6 +21,10 @@ terraform {
       version = "~> 3.5"
     }
   }
+}
+
+provider "github" {
+  owner = "kewalaka-org"
 }
 
 resource "random_pet" "repo_name" {
@@ -34,6 +39,20 @@ module "github_repository" {
   visibility           = "private"
   vulnerability_alerts = false
   archive_on_destroy   = false
+
+  use_template_repository = true
+  template = {
+    owner      = "kewalaka-org"
+    repository = "terraform-azurerm-avm-template"
+  }
+
+  files = {
+    "README.md" = {
+      content             = "This is a test to override the existing README.md."
+      file                = "README.md"
+      overwrite_on_create = true
+    }
+  }
 }
 ```
 
@@ -43,6 +62,8 @@ module "github_repository" {
 The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
+
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
