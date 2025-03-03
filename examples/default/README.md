@@ -7,18 +7,23 @@ This deploys the module in its simplest form.
 terraform {
   required_version = "~> 1.9"
   required_providers {
-    # github = {
-    #   source  = "integrations/github"
-    #   version = "~> 6.5.0"
-    # }
-    # modtm = {
-    #   source  = "azure/modtm"
-    #   version = "~> 0.3"
-    # }
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
+  }
+}
+
+provider "github" {
+  owner = var.github_organization_name
+  app_auth {
+    id              = var.github_app_id
+    installation_id = var.github_app_installation_id
+    pem_file        = var.github_app_pem_file
   }
 }
 
@@ -48,6 +53,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
 
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 <!-- markdownlint-disable MD013 -->
@@ -60,7 +67,31 @@ The following resources are used by this module:
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
 
-No required inputs.
+The following input variables are required:
+
+### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
+
+Description: The id of the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id)
+
+Description: The installation id of the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file)
+
+Description: The contents of the PEM file for the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name)
+
+Description: The name of the GitHub organization.
+
+Type: `string`
 
 ## Optional Inputs
 
