@@ -1,27 +1,18 @@
 <!-- BEGIN_TF_DOCS -->
 # Github Repository Files Submodule
 
-This module is used to manage files contents inside a repository
+This module is used to manage file contents inside a repository
 
 ## Usage
 
 ```terraform
 locals {
-  variables = {
-    repo1 = {
-      name            = "REPO_VARIABLE_1"
-      plaintext_value = "supersecretvalue"
-    }
-    env1 = {
-      name            = "ENV_VARIABLE_1"
-      plaintext_value = "anothersecretvalue"
-      environment     = "production"
-    }
+  files = {
   }
 }
 
-module "avm_res_githubrepository_secret" {
-  source  = "Azure/avm-res-githubrepository/github//modules/variable"
+module "avm_res_githubrepository_file" {
+  source  = "Azure/avm-res-githubrepository/github//modules/file"
   version = "x.y.z"
 
   for_each = local.variables
@@ -69,11 +60,17 @@ Description: The path of the file to manage.
 
 Type: `string`
 
-### <a name="input_repository_id"></a> [repository\_id](#input\_repository\_id)
+### <a name="input_repository"></a> [repository](#input\_repository)
 
 Description: The id of the repository.
 
-Type: `string`
+Type:
+
+```hcl
+object({
+    id = string
+  })
+```
 
 ## Optional Inputs
 

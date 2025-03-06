@@ -1,7 +1,7 @@
-data "github_organization" "this" {
-  name         = var.organization_name
-  summary_only = true
-}
+# data "github_organization" "this" {
+#   name         = var.organization_name
+#   summary_only = true
+# }
 
 resource "github_repository" "this" {
   name                 = var.name

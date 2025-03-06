@@ -7,14 +7,6 @@
 #   nullable    = false
 # }
 
-# variable "name_templates" {
-#   type        = string
-#   default     = null
-#   description = <<DESCRIPTION
-# The name of the templates repo to use.
-# DESCRIPTION
-# }
-
 # variable "workflows" {
 #   type = map(object({
 #     workflow_file_name = string
@@ -42,14 +34,6 @@ DESCRIPTION
   }
 }
 
-variable "organization_name" {
-  type        = string
-  description = <<DESCRIPTION
-The name of the organization.
-DESCRIPTION
-  nullable    = false
-}
-
 # tflint:ignore:variable-unused
 variable "enable_telemetry" {
   type        = bool
@@ -62,21 +46,17 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "use_template_repository" {
-  type        = bool
-  default     = false
-  description = <<DESCRIPTION
-Whether to use the template repository.
-DESCRIPTION
-  nullable    = false
-}
-
 variable "github_advanced_security" {
   type = object({
     enable_advanced_security               = optional(bool)
     enable_secret_scanning                 = optional(bool)
     enable_secret_scanning_push_protection = optional(bool)
   })
+  default = {
+    enable_advanced_security               = true
+    enable_secret_scanning                 = true
+    enable_secret_scanning_push_protection = true
+  }
   description = <<DESCRIPTION
 Options for configuring security and analysis features.
 
@@ -84,9 +64,30 @@ Options for configuring security and analysis features.
 - `enable_secret_scanning` - Whether to enable secret scanning.
 - `enable_secret_scanning_push_protection` - Whether to enable secret scanning push protection.
 DESCRIPTION
-  default = {
-    enable_advanced_security               = true
-    enable_secret_scanning                 = true
-    enable_secret_scanning_push_protection = true
-  }
+}
+
+variable "template" {
+  type = object({
+    owner                = optional(string)
+    repository           = optional(string)
+    include_all_branches = optional(bool, false)
+  })
+  default     = {}
+  description = <<DESCRIPTION
+The template repository to use when creating the repository.
+
+- `owner` (Optional) - The owner of the template repository.
+- `repository` (Optional) - The name of the template repository.
+- `include_all_branches` (Optional) - Whether to include all branches from the template repository.
+
+DESCRIPTION
+}
+
+variable "use_template_repository" {
+  type        = bool
+  default     = false
+  description = <<DESCRIPTION
+Whether to use the template repository.
+DESCRIPTION
+  nullable    = false
 }

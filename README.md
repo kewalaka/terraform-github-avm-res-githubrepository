@@ -64,7 +64,6 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/client_config) (data source)
-- [github_organization.this](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/organization) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -75,12 +74,6 @@ The following input variables are required:
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of this resource.
-
-Type: `string`
-
-### <a name="input_organization_name"></a> [organization\_name](#input\_organization\_name)
-
-Description: The name of the organization.
 
 Type: `string`
 
@@ -235,6 +228,40 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_files"></a> [files](#input\_files)
+
+Description: Map of files to be managed in the GitHub repository.
+
+- `content` - The file content.
+- `file` - The path of the file to manage.
+- `branch` - (Optional) Git branch (defaults to the repository's default branch). The branch must already exist, it will only be created automatically if `autocreate_branch` is set to true.
+- `commit_message` - (Optional) The commit message when creating, updating or deleting the managed file.
+- `commit_author` - (Optional) Committer author name to use. NOTE: GitHub app users may omit author and email information so GitHub can verify commits as the GitHub App. This may be useful when a branch protection rule requires signed commits.
+- `commit_email` - (Optional) Committer email address to use. NOTE: GitHub app users may omit author and email information so GitHub can verify commits as the GitHub App. This may be useful when a branch protection rule requires signed commits.
+- `overwrite_on_create` - (Optional) Enable overwriting existing files. If set to true it will overwrite an existing file with the same name. If set to false it will fail if there is an existing file with the same name.
+- `autocreate_branch` - (Optional) Automatically create the branch if it could not be found. Defaults to false.
+- `autocreate_branch_source_branch` - (Optional) The branch name to start from, if `autocreate_branch` is set. Defaults to `main`.
+- `autocreate_branch_source_sha` - (Optional) The commit hash to start from, if `autocreate_branch` is set. Defaults to the tip of `autocreate_branch_source_branch`. If provided, `autocreate_branch_source_branch` is ignored.
+
+Type:
+
+```hcl
+map(object({
+    content                         = string
+    file                            = string
+    branch                          = optional(string, null)
+    commit_message                  = optional(string, null)
+    commit_author                   = optional(string, null)
+    commit_email                    = optional(string, null)
+    overwrite_on_create             = optional(bool, false)
+    autocreate_branch               = optional(bool, false)
+    autocreate_branch_source_branch = optional(string, "main")
+    autocreate_branch_source_sha    = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_github_advanced_security"></a> [github\_advanced\_security](#input\_github\_advanced\_security)
 
 Description: Options for configuring security and analysis features.
@@ -371,6 +398,26 @@ object({
 
 Default: `{}`
 
+### <a name="input_template"></a> [template](#input\_template)
+
+Description: The template repository to use when creating the repository.
+
+- `owner` (Optional) - The owner of the template repository.
+- `repository` (Optional) - The name of the template repository.
+- `include_all_branches` (Optional) - Whether to include all branches from the template repository.
+
+Type:
+
+```hcl
+object({
+    owner                = optional(string)
+    repository           = optional(string)
+    include_all_branches = optional(bool, false)
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_topics"></a> [topics](#input\_topics)
 
 Description: values to use as topics for the repository
@@ -488,6 +535,12 @@ Version:
 ### <a name="module_environments"></a> [environments](#module\_environments)
 
 Source: ./modules/environment
+
+Version:
+
+### <a name="module_file"></a> [file](#module\_file)
+
+Source: ./modules/file
 
 Version:
 

@@ -3,8 +3,12 @@ terraform {
   required_providers {
     github = {
       source  = "integrations/github"
-      version = "~> 6.5"
+      version = "~> 6.5.0"
     }
+    # modtm = {
+    #   source  = "azure/modtm"
+    #   version = "~> 0.3"
+    # }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -34,10 +38,17 @@ module "github_repository" {
   vulnerability_alerts = false
   archive_on_destroy   = false
 
-  # don't get this on the free plan
-  github_advanced_security = {
-    enable_advanced_security               = false
-    enable_secret_scanning                 = false
-    enable_secret_scanning_push_protection = false
+  use_template_repository = true
+  template = {
+    owner      = "kewalaka-org"
+    repository = "terraform-azurerm-avm-template"
+  }
+
+  files = {
+    "README.md" = {
+      content             = "This is a test to override the existing README.md."
+      file                = "README.md"
+      overwrite_on_create = true
+    }
   }
 }
