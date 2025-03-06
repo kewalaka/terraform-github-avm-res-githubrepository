@@ -34,6 +34,14 @@ DESCRIPTION
   }
 }
 
+variable "organization_name" {
+  type        = string
+  description = <<DESCRIPTION
+The name of the organization.
+DESCRIPTION
+  nullable    = false
+}
+
 # tflint:ignore:variable-unused
 variable "enable_telemetry" {
   type        = bool

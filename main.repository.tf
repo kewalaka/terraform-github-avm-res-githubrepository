@@ -1,13 +1,13 @@
-# data "github_organization" "this" {
-#   name         = var.organization_name
-#   summary_only = true
-# }
+data "github_organization" "this" {
+  name         = var.organization_name
+  summary_only = true
+}
 
 resource "github_repository" "this" {
   name                 = var.name
   description          = join(" • ", [var.description, "This repository is defined and managed in Terraform"])
   auto_init            = true
-  visibility           = var.visibility #data.github_organization.this.plan == local.free_plan ? "public" : "private"
+  visibility           = var.visibility
   allow_update_branch  = true
   allow_merge_commit   = false
   allow_rebase_merge   = false
@@ -24,7 +24,7 @@ resource "github_repository" "this" {
   vulnerability_alerts = var.vulnerability_alerts
 
   dynamic "security_and_analysis" {
-    for_each = local.enable_github_advanced_security ? [1] : []
+    for_each = local.enable_github_advanced_security && !local.free_plan ? [1] : []
     content {
       dynamic "advanced_security" {
         for_each = var.github_advanced_security.enable_advanced_security ? [1] : []

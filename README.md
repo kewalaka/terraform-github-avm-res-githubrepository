@@ -64,6 +64,7 @@ The following resources are used by this module:
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [github_organization.this](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/organization) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -74,6 +75,12 @@ The following input variables are required:
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of this resource.
+
+Type: `string`
+
+### <a name="input_organization_name"></a> [organization\_name](#input\_organization\_name)
+
+Description: The name of the organization.
 
 Type: `string`
 
