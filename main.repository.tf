@@ -24,19 +24,19 @@ resource "github_repository" "this" {
   vulnerability_alerts = var.vulnerability_alerts
 
   dynamic "security_and_analysis" {
-    for_each = data.github_organization.this.plan == local.free_plan ? [] : [1]
+    for_each = local.enable_github_advanced_security ? [1] : []
     content {
       dynamic "advanced_security" {
-        for_each = var.visibility == "public" ? [] : [1]
+        for_each = var.github_advanced_security.enable_advanced_security ? [1] : []
         content {
-          status = "disabled"
+          status = "enabled"
         }
       }
       secret_scanning {
-        status = var.visibility == "public" ? "enabled" : "disabled"
+        status = var.github_advanced_security.enable_secret_scanning ? "enabled" : "disabled"
       }
       secret_scanning_push_protection {
-        status = var.visibility == "public" ? "enabled" : "disabled"
+        status = var.github_advanced_security.enable_secret_scanning_push_protection ? "enabled" : "disabled"
       }
     }
   }

@@ -37,4 +37,11 @@ module "github_repository" {
   visibility           = "private"
   vulnerability_alerts = false
   archive_on_destroy   = false
+
+  # don't get this on the free plan
+  github_advanced_security = {
+    enable_advanced_security               = false
+    enable_secret_scanning                 = false
+    enable_secret_scanning_push_protection = false
+  }
 }

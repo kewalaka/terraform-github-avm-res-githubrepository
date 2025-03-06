@@ -43,6 +43,13 @@ module "github_repository" {
   visibility           = "private"
   vulnerability_alerts = false
   archive_on_destroy   = false
+
+  # don't get this on the free plan
+  github_advanced_security = {
+    enable_advanced_security               = false
+    enable_secret_scanning                 = false
+    enable_secret_scanning_push_protection = false
+  }
 }
 ```
 
@@ -71,7 +78,7 @@ The following input variables are required:
 
 ### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
 
-Description: The id of the GitHub App, used for authentication.
+Description: The AppId of the GitHub App, used for authentication.
 
 Type: `string`
 

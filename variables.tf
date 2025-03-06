@@ -70,3 +70,23 @@ Whether to use the template repository.
 DESCRIPTION
   nullable    = false
 }
+
+variable "github_advanced_security" {
+  type = object({
+    enable_advanced_security               = optional(bool)
+    enable_secret_scanning                 = optional(bool)
+    enable_secret_scanning_push_protection = optional(bool)
+  })
+  description = <<DESCRIPTION
+Options for configuring security and analysis features.
+
+- `enable_advanced_security` - Whether to enable advanced security features.
+- `enable_secret_scanning` - Whether to enable secret scanning.
+- `enable_secret_scanning_push_protection` - Whether to enable secret scanning push protection.
+DESCRIPTION
+  default = {
+    enable_advanced_security               = true
+    enable_secret_scanning                 = true
+    enable_secret_scanning_push_protection = true
+  }
+}

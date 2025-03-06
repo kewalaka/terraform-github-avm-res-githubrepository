@@ -235,6 +235,34 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_github_advanced_security"></a> [github\_advanced\_security](#input\_github\_advanced\_security)
+
+Description: Options for configuring security and analysis features.
+
+- `enable_advanced_security` - Whether to enable advanced security features.
+- `enable_secret_scanning` - Whether to enable secret scanning.
+- `enable_secret_scanning_push_protection` - Whether to enable secret scanning push protection.
+
+Type:
+
+```hcl
+object({
+    enable_advanced_security               = optional(bool)
+    enable_secret_scanning                 = optional(bool)
+    enable_secret_scanning_push_protection = optional(bool)
+  })
+```
+
+Default:
+
+```json
+{
+  "enable_advanced_security": true,
+  "enable_secret_scanning": true,
+  "enable_secret_scanning_push_protection": true
+}
+```
+
 ### <a name="input_has_discussions"></a> [has\_discussions](#input\_has\_discussions)
 
 Description: Enable repository discussions
