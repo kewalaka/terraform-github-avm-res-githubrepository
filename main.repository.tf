@@ -7,36 +7,36 @@ resource "github_repository" "this" {
   name                 = var.name
   description          = join(" • ", [var.description, "This repository is defined and managed in Terraform"])
   auto_init            = true
-  visibility           = var.visibility #data.github_organization.this.plan == local.free_plan ? "public" : "private"
+  visibility           = var.visibility
   allow_update_branch  = true
   allow_merge_commit   = false
   allow_rebase_merge   = false
   has_discussions      = var.has_discussions
   has_downloads        = var.has_downloads
   has_projects         = var.has_projects
-  has_wiki             = var.has_wiki
+  has_wiki             = local.has_wiki
   has_issues           = var.has_issues
   is_template          = var.type == "template" ? true : false
   homepage_url         = var.homepage_url
   archived             = false
   archive_on_destroy   = var.archive_on_destroy
   topics               = var.topics
-  vulnerability_alerts = var.vulnerability_alerts
+  vulnerability_alerts = var.visibility == "public" ? true : var.vulnerability_alerts
 
   dynamic "security_and_analysis" {
-    for_each = data.github_organization.this.plan == local.free_plan ? [] : [1]
+    for_each = local.enable_github_advanced_security && !local.free_plan ? [1] : []
     content {
       dynamic "advanced_security" {
-        for_each = var.visibility == "public" ? [] : [1]
+        for_each = var.visibility != "public" && var.github_advanced_security.enable_advanced_security ? [1] : []
         content {
-          status = "disabled"
+          status = var.github_advanced_security.enable_advanced_security ? "enabled" : "disabled"
         }
       }
       secret_scanning {
-        status = var.visibility == "public" ? "enabled" : "disabled"
+        status = var.visibility == "public" ? "disabled" : var.github_advanced_security.enable_secret_scanning ? "enabled" : "disabled"
       }
       secret_scanning_push_protection {
-        status = var.visibility == "public" ? "enabled" : "disabled"
+        status = var.visibility == "public" ? "disabled" : var.github_advanced_security.enable_secret_scanning_push_protection ? "enabled" : "disabled"
       }
     }
   }

@@ -3,6 +3,15 @@
 
 This example is designed to test the various submodules being called independently.
 
+GitHub App permissions required:
+
+- Repository Environment: write
+- Repository Secrets: write
+- Repository Codespaces secrets: write (optional, if setting these)
+- Repository Dependabot secrets: write (optional, if setting these)
+
+ref: <https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28#create-or-update-an-environment-secret>
+
 ```hcl
 terraform {
   required_version = "~> 1.9"
@@ -22,6 +31,15 @@ terraform {
   }
 }
 
+provider "github" {
+  owner = var.github_organization_name
+  app_auth {
+    id              = var.github_app_id
+    installation_id = var.github_app_installation_id
+    pem_file        = var.github_app_pem_file
+  }
+}
+
 resource "random_pet" "repo_name" {
   length = 2
 }
@@ -30,7 +48,7 @@ resource "github_repository" "this" {
   name                 = random_pet.repo_name.id
   visibility           = "public"
   archive_on_destroy   = false
-  vulnerability_alerts = false
+  vulnerability_alerts = true
 }
 
 locals {
@@ -83,7 +101,31 @@ The following resources are used by this module:
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
 
-No required inputs.
+The following input variables are required:
+
+### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
+
+Description: The AppId of the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id)
+
+Description: The installation id of the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file)
+
+Description: The contents of the PEM file for the GitHub App, used for authentication.
+
+Type: `string`
+
+### <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name)
+
+Description: The name of the GitHub organization.
+
+Type: `string`
 
 ## Optional Inputs
 
