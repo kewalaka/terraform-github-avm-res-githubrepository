@@ -1,25 +1,3 @@
-# variable "repository_files" {
-#   type = map(object({
-#     content = string
-#   }))
-#   description = <<DESCRIPTION
-# A map of repository files with their content.
-# DESCRIPTION
-#   default     = {}
-#   nullable    = false
-# }
-
-# variable "template_repository_files" {
-#   type = map(object({
-#     content = string
-#   }))
-#   description = <<DESCRIPTION
-# A map of template repository files with their content.
-# DESCRIPTION
-#   default     = {}
-#   nullable    = false
-# }
-
 variable "description" {
   type        = string
   description = <<DESCRIPTION

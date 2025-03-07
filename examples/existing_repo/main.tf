@@ -33,7 +33,7 @@ resource "github_repository" "this" {
   name                 = random_pet.repo_name.id
   visibility           = "public"
   archive_on_destroy   = false
-  vulnerability_alerts = false
+  vulnerability_alerts = true
 }
 
 locals {

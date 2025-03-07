@@ -36,11 +36,10 @@ data "github_user" "current" {
 module "github_repository" {
   source = "../../"
 
-  name                 = random_pet.repo_name.id
-  organization_name    = "kewalaka-org"
-  visibility           = "public"
-  vulnerability_alerts = false
-  archive_on_destroy   = false
+  name               = random_pet.repo_name.id
+  organization_name  = "kewalaka-org"
+  visibility         = "public"
+  archive_on_destroy = false
 
   environments = {
     "dev" = {

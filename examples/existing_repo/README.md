@@ -3,6 +3,15 @@
 
 This example is designed to test the various submodules being called independently.
 
+GitHub App permissions required:
+
+- Repository Environment: write
+- Repository Secrets: write
+- Repository Codespaces secrets: write (optional, if setting these)
+- Repository Dependabot secrets: write (optional, if setting these)
+
+ref: <https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28#create-or-update-an-environment-secret>
+
 ```hcl
 terraform {
   required_version = "~> 1.9"
@@ -39,7 +48,7 @@ resource "github_repository" "this" {
   name                 = random_pet.repo_name.id
   visibility           = "public"
   archive_on_destroy   = false
-  vulnerability_alerts = false
+  vulnerability_alerts = true
 }
 
 locals {

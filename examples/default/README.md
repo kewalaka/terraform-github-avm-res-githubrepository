@@ -3,6 +3,10 @@
 
 This deploys the module in its simplest form.
 
+GitHub App permissions required:
+
+- Repository Administration: write
+
 ```hcl
 terraform {
   required_version = "~> 1.9"
@@ -35,17 +39,11 @@ module "github_repository" {
   source = "../../"
 
   name                 = random_pet.repo_name.id
-  organization_name    = "kewalaka-org"
+  organization_name    = var.github_organization_name
   visibility           = "private"
   vulnerability_alerts = false
   archive_on_destroy   = false
 
-  # don't get this on the free plan
-  github_advanced_security = {
-    enable_advanced_security               = false
-    enable_secret_scanning                 = false
-    enable_secret_scanning_push_protection = false
-  }
 }
 ```
 
