@@ -19,6 +19,7 @@ env:
   TF_IN_AUTOMATION: 1
   TF_VAR_enable_telemetry: "false"
   VARS_CONTEXT: ${{ toJson(vars) }}
+  AVM_ENABLE_AZURE_SUBSCRIPTIONS: ${{ vars.AVM_ENABLE_AZURE_SUBSCRIPTIONS || 'false' }}
 
 jobs:
   pr-check:
@@ -69,8 +70,9 @@ jobs:
           $examples = Get-ChildItem -Directory
           $processedExamples = @()
 
+          $useSubscriptions = $env:AVM_ENABLE_AZURE_SUBSCRIPTIONS -eq 'true'
           $subscriptions = @()
-          if (-not [string]::IsNullOrEmpty($env:TEST_SUBSCRIPTION_IDS)) {
+          if ($useSubscriptions -and -not [string]::IsNullOrEmpty($env:TEST_SUBSCRIPTION_IDS)) {
             try {
               $parsed = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
               if ($null -ne $parsed) {
@@ -81,8 +83,11 @@ jobs:
                 }
               }
             } catch {
-              Write-Host "Unable to parse TEST_SUBSCRIPTION_IDS; using placeholder subscription metadata."
+              Write-Host "Unable to parse TEST_SUBSCRIPTION_IDS; defaulting to placeholder subscription metadata."
+              $useSubscriptions = $false
             }
+          } else {
+            $useSubscriptions = $false
           }
 
           $placeholderSubscriptionId = "00000000-0000-0000-0000-000000000000"
@@ -93,7 +98,7 @@ jobs:
               Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
               continue
             }
-            if ($subscriptions.Count -gt 0) {
+            if ($useSubscriptions -and $subscriptions.Count -gt 0) {
               $subscriptionIndex = $i % $subscriptions.Length
               $subscriptionId = $subscriptions[$subscriptionIndex].id
               $subscriptionName = $subscriptions[$subscriptionIndex].name
@@ -134,7 +139,7 @@ jobs:
         shell: bash
 
   globalsetup:
-    if: github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
+    if: env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     environment: test
     needs: checksetup
@@ -194,8 +199,9 @@ jobs:
 
           SUBSCRIPTION_ID="${{ matrix.subscriptionId }}"
           SUBSCRIPTION_NAME="${{ matrix.subscriptionName }}"
+          PLACEHOLDER_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 
-          if [ "$SUBSCRIPTION_ID" != "00000000-0000-0000-0000-000000000000" ] && [ -n "$SUBSCRIPTION_ID" ]; then
+          if [ "${AVM_ENABLE_AZURE_SUBSCRIPTIONS}" = "true" ] && [ -n "$SUBSCRIPTION_ID" ] && [ "$SUBSCRIPTION_ID" != "$PLACEHOLDER_SUBSCRIPTION_ID" ]; then
             echo "::add-mask::${SUBSCRIPTION_ID}"
             export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
             echo "Using subscription ${SUBSCRIPTION_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
@@ -234,7 +240,7 @@ jobs:
         shell: bash
 
   globalteardown:
-    if: always() && needs.checkteardown.outputs.teardown_exists == 'true' && github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
+    if: always() && env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && needs.checkteardown.outputs.teardown_exists == 'true' && github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     environment: test
     needs: checkteardown
