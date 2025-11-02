@@ -34,11 +34,11 @@ output "repository" {
 }
 
 output "resource_id" {
-  description = "The resource ID of the repository."
+  description = "The resource ID of the GitHub repository."
   value       = github_repository.this.id
 }
 
 output "rulesets" {
-  description = "Rulesets applied to the repository."
+  description = "Rulesets applied to the GitHub repository."
   value       = module.rulesets
 }
