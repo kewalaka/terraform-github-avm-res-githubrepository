@@ -60,6 +60,14 @@ module "actions_permissions" {
 - **`local_only`**: Maximum security but requires duplicating all actions in your repository
 - **`selected`**: Balanced approach allowing specific trusted actions while blocking others
 
+## Known Limitations
+
+**Default Workflow Permissions**: The GitHub Terraform provider (v6.5) does not currently support configuring `default_workflow_permissions` (read vs write token scopes) at the repository level. This setting must be configured manually through the GitHub UI under Settings > Actions > General > Workflow permissions, or at the organization level.
+
+**Fork Pull Request Approval**: Similarly, `require_approval_for_fork_pull_request` is not currently available in the Terraform provider at the repository level.
+
+These limitations are due to the provider not yet exposing these API endpoints, not limitations of this module.
+
 ## Provider Documentation
 
 See the [github\_actions\_repository\_permissions](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/actions_repository_permissions) resource documentation for more details.
