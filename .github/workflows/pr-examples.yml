@@ -28,6 +28,7 @@ jobs:
       examples: ${{ steps.collect.outputs.examples }}
     permissions:
       contents: read
+    environment: test
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: collect examples
@@ -58,6 +59,7 @@ jobs:
     needs: collect-examples
     permissions:
       contents: read
+    environment: test
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run examples/setup.sh
@@ -74,6 +76,7 @@ jobs:
     needs: [collect-examples, setup]
     permissions:
       contents: read
+    environment: test
     env:
       FORCE_COLOR: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -103,6 +106,7 @@ jobs:
     needs: testexamples
     permissions:
       contents: read
+    environment: test
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run examples/teardown.sh
