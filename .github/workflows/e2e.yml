@@ -1,5 +1,5 @@
 ---
-name: PR Check
+name: test examples
 on:
   pull_request:
     types: ['opened', 'reopened', 'synchronize']
@@ -8,12 +8,9 @@ on:
 
 jobs:
   check:
-    # Disabled to align with main; superseded by e2e/linting/version-check workflows
-    if: ${{ false }}
-    permissions: {}
     runs-on: ubuntu-latest
     steps:
-      - name: checking for fork
+      - name: Checking for Fork
         shell: pwsh
         run: |
           $isFork = "${{ github.event.pull_request.head.repo.fork }}"
@@ -21,12 +18,10 @@ jobs:
             echo "### WARNING: This workflow is disabled for forked repositories. Please follow the [release branch process](https://azure.github.io/Azure-Verified-Modules/contributing/terraform/terraform-contribution-flow/#5-create-a-pull-request-to-the-upstream-repository) if end to end tests are required." >> $env:GITHUB_STEP_SUMMARY
           }
 
-  run-managed-workflow:
-    # Disabled to align with main; superseded by e2e/linting/version-check workflows
-    if: ${{ false }}
-    # if: github.event.pull_request.head.repo.fork == false
-    uses: Azure/avm-terraform-governance/.github/workflows/managed-pr-check.yml@main
-    name: run managed workflow
+  run-e2e-tests:
+    if: github.event.pull_request.head.repo.fork == false
+    uses: ./.github/workflows/test-examples-template.yml
+    name: end to end
     secrets: inherit
     permissions:
       id-token: write
