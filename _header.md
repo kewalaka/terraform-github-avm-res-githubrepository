@@ -10,12 +10,12 @@ The intention is to separately develop another module for GitHub Organizations a
 
 - Create and manage GitHub repositories, branches & environments
 - Apply classic branches protection
+- Apply repository rulesets (branch, tag, and push protection)
 - Manage variables & secrets at the repository and environment scope.
 - Enable or disable features such as issues, discussions, wiki, etc.
 
 TODO:
 
-- Rulesets
 - Testing for adding team permissions
 - Testing for adding files & using templates
 - OIDC subject mapping

@@ -37,3 +37,8 @@ output "resource_id" {
   description = "The ID of the repository."
   value       = github_repository.this.id
 }
+
+output "rulesets" {
+  description = "Rulesets applied to the repository."
+  value       = module.rulesets
+}
