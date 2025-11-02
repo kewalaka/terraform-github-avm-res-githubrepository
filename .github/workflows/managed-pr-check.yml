@@ -152,7 +152,7 @@ jobs:
       TF_VAR_enable_telemetry: false
     strategy:
       matrix:
-        include: ${{ fromJson(needs.getexamples.outputs.examples || '[]') }}
+        include: ${{ fromJson((needs.getexamples.outputs.examples && needs.getexamples.outputs.examples != '[]' && needs.getexamples.outputs.examples) || '[{"name":"__no_examples__","subscriptionIndex":0,"subscriptionId":"00000000-0000-0000-0000-000000000000","subscriptionName":"none"}]') }}
       fail-fast: false
     steps:
       - name: Set up Docker
@@ -160,6 +160,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
 
       - name: Test example
+        if: ${{ matrix.name != '__no_examples__' }}
         shell: bash
         env:
           AVM_EXAMPLE: ${{ matrix.name }}
@@ -180,6 +181,10 @@ jobs:
           sudo chmod 666 /var/run/docker.sock
 
           ./avm test-examples
+
+      - name: No examples to test
+        if: ${{ matrix.name == '__no_examples__' }}
+        run: echo "No examples found to test in ./examples (or they were all ignored)"
 
   checkteardown:
     runs-on: ubuntu-latest
