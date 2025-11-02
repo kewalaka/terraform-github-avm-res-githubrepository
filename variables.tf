@@ -76,3 +76,20 @@ Whether to use the template repository.
 DESCRIPTION
   nullable    = false
 }
+
+variable "use_existing_repository" {
+  type        = bool
+  default     = false
+  description = <<DESCRIPTION
+Whether to use an existing repository instead of creating a new one. When true, the module will not create a github_repository resource and will instead configure subcomponents (branches, environments, secrets, etc.) on the repository specified by the `name` variable.
+DESCRIPTION
+  nullable    = false
+}
+
+variable "repository_node_id" {
+  type        = string
+  default     = null
+  description = <<DESCRIPTION
+The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
+DESCRIPTION
+}

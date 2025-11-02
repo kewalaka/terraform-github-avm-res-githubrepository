@@ -3,4 +3,12 @@ locals {
   free_plan                       = data.github_organization.this.plan == "free"
   free_plan_visibility_notpublic  = local.free_plan && var.visibility != "public"
   has_wiki                        = local.free_plan_visibility_notpublic ? false : var.has_wiki
+
+  # Repository identity - use existing repo name or created repo name
+  repository_name    = var.use_existing_repository ? var.name : github_repository.this[0].name
+  repository_id      = var.use_existing_repository ? var.name : github_repository.this[0].id
+  repository_node_id = var.use_existing_repository ? var.repository_node_id : github_repository.this[0].node_id
+
+  # Determine if branch protection can be enabled
+  enable_branch_protection = var.use_existing_repository ? var.repository_node_id != null : true
 }

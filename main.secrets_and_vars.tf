@@ -4,7 +4,7 @@ module "secret" {
   for_each = var.secrets
 
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
 
   name                 = each.value.name
@@ -21,7 +21,7 @@ module "variable" {
   for_each = var.variables
 
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
 
   name        = each.value.name

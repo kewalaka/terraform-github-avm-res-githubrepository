@@ -4,7 +4,7 @@ module "environments" {
 
   name = each.value.name
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
 
   reviewers = each.value.reviewers != null ? {

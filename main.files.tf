@@ -4,7 +4,7 @@ module "file" {
   for_each = var.files
 
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
 
   content                         = each.value.content
