@@ -69,19 +69,44 @@ jobs:
           $examples = Get-ChildItem -Directory
           $processedExamples = @()
 
-          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+          $subscriptions = @()
+          if (-not [string]::IsNullOrEmpty($env:TEST_SUBSCRIPTION_IDS)) {
+            try {
+              $parsed = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+              if ($null -ne $parsed) {
+                if ($parsed -is [System.Array]) {
+                  $subscriptions = $parsed
+                } else {
+                  $subscriptions = @($parsed)
+                }
+              }
+            } catch {
+              Write-Host "Unable to parse TEST_SUBSCRIPTION_IDS; using placeholder subscription metadata."
+            }
+          }
+
+          $placeholderSubscriptionId = "00000000-0000-0000-0000-000000000000"
+          $placeholderSubscriptionName = "local-placeholder"
 
           for ($i = 0; $i -lt $examples.Count; $i++) {
             if (Test-Path "$(($examples[$i].FullName))/.e2eignore") {
               Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
               continue
             }
-            $subscriptionIndex = $i % $subscriptions.Length
+            if ($subscriptions.Count -gt 0) {
+              $subscriptionIndex = $i % $subscriptions.Length
+              $subscriptionId = $subscriptions[$subscriptionIndex].id
+              $subscriptionName = $subscriptions[$subscriptionIndex].name
+            } else {
+              $subscriptionIndex = $i
+              $subscriptionId = $placeholderSubscriptionId
+              $subscriptionName = $placeholderSubscriptionName
+            }
             $processedExamples += @{
               name              = $examples[$i].Name
               subscriptionIndex = $subscriptionIndex
-              subscriptionId    = $subscriptions[$subscriptionIndex].id
-              subscriptionName  = $subscriptions[$subscriptionIndex].name
+              subscriptionId    = $subscriptionId
+              subscriptionName  = $subscriptionName
             }
           }
 
@@ -167,14 +192,21 @@ jobs:
         run: |
           set -e
 
-          echo "::add-mask::${{ matrix.subscriptionId }}"
-          export ARM_SUBSCRIPTION_ID=${{ matrix.subscriptionId }}
-          echo "Using subscription ${{ matrix.subscriptionName }} $ARM_SUBSCRIPTION_ID (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
+          SUBSCRIPTION_ID="${{ matrix.subscriptionId }}"
+          SUBSCRIPTION_NAME="${{ matrix.subscriptionName }}"
 
-          export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
-          # This needs to be in the parent directory to avoid git seeing the file as a change
-          curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
-          source ../prepare-credential.sh
+          if [ "$SUBSCRIPTION_ID" != "00000000-0000-0000-0000-000000000000" ] && [ -n "$SUBSCRIPTION_ID" ]; then
+            echo "::add-mask::${SUBSCRIPTION_ID}"
+            export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+            echo "Using subscription ${SUBSCRIPTION_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
+
+            export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
+            # This needs to be in the parent directory to avoid git seeing the file as a change
+            curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
+            source ../prepare-credential.sh
+          else
+            echo "TEST_SUBSCRIPTION_IDS not supplied; skipping Azure credential preparation." 
+          fi
 
           # Fix Docker socket permissions for CI
           sudo chmod 666 /var/run/docker.sock
