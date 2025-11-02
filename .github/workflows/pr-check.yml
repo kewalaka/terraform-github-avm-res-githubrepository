@@ -20,11 +20,20 @@ jobs:
           }
 
   # Use local reusable workflow to run example tests (skips Azure subscription checks)
-  run-e2e-tests:
+  run-managed-workflow:
     if: github.event.pull_request.head.repo.fork == false
-    uses: ./.github/workflows/test-examples-template.yml
-    name: end to end
-    secrets: inherit
+    uses: Azure/avm-terraform-governance/.github/workflows/managed-pr-check.yml@main
+    name: run managed workflow
+    # Explicitly pass required secrets to ensure availability in the reusable workflow
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TEST_SUBSCRIPTION_IDS: ${{ secrets.TEST_SUBSCRIPTION_IDS }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_TENANT_ID_OVERRIDE: ${{ secrets.ARM_TENANT_ID_OVERRIDE }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_SUBSCRIPTION_ID_OVERRIDE: ${{ secrets.ARM_SUBSCRIPTION_ID_OVERRIDE }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_ID_OVERRIDE: ${{ secrets.ARM_CLIENT_ID_OVERRIDE }}
     permissions:
       id-token: write
       contents: read
