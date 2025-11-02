@@ -69,19 +69,23 @@ jobs:
           $examples = Get-ChildItem -Directory
           $processedExamples = @()
 
+          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+
           for ($i = 0; $i -lt $examples.Count; $i++) {
             if (Test-Path "$(($examples[$i].FullName))/.e2eignore") {
               Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
               continue
             }
+            $subscriptionIndex = $i % $subscriptions.Length
             $processedExamples += @{
               name              = $examples[$i].Name
-              subscriptionIndex = $i
+              subscriptionIndex = $subscriptionIndex
+              subscriptionId    = $subscriptions[$subscriptionIndex].id
+              subscriptionName  = $subscriptions[$subscriptionIndex].name
             }
           }
 
           $json = ConvertTo-Json $processedExamples -Compress
-          Write-Host "Matrix (safe): $json"
           Write-Output "examples=$json" >> $env:GITHUB_OUTPUT
 
         working-directory: examples
@@ -163,23 +167,9 @@ jobs:
         run: |
           set -e
 
-          # Derive subscription from TEST_SUBSCRIPTION_IDS using the matrix subscriptionIndex
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y >/dev/null 2>&1 || true
-            sudo apt-get install -y jq >/dev/null 2>&1 || true
-          fi
-          SUB_COUNT=$(echo "$TEST_SUBSCRIPTION_IDS" | jq 'length')
-          if [ -z "$SUB_COUNT" ] || [ "$SUB_COUNT" -eq 0 ]; then
-            echo "ERROR: TEST_SUBSCRIPTION_IDS is empty; cannot run examples." >&2
-            exit 1
-          fi
-          SUB_IDX_RAW=${{ matrix.subscriptionIndex }}
-          SUB_IDX=$(( SUB_IDX_RAW % SUB_COUNT ))
-          echo "$TEST_SUBSCRIPTION_IDS" | jq -e ".[${SUB_IDX}]" >/dev/null
-          export ARM_SUBSCRIPTION_ID=$(echo "$TEST_SUBSCRIPTION_IDS" | jq -r ".[${SUB_IDX}].id")
-          SUB_NAME=$(echo "$TEST_SUBSCRIPTION_IDS" | jq -r ".[${SUB_IDX}].name")
-          echo "::add-mask::${ARM_SUBSCRIPTION_ID}"
-          echo "Using subscription ${SUB_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${SUB_IDX}) for example $AVM_EXAMPLE"
+          echo "::add-mask::${{ matrix.subscriptionId }}"
+          export ARM_SUBSCRIPTION_ID=${{ matrix.subscriptionId }}
+          echo "Using subscription ${{ matrix.subscriptionName }} $ARM_SUBSCRIPTION_ID (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
 
           export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
           # This needs to be in the parent directory to avoid git seeing the file as a change
