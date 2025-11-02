@@ -1,5 +1,5 @@
 <!-- BEGIN_TF_DOCS -->
-# Github Repository Actions Permissions Submodule
+# GitHub Repository Actions Permissions Submodule
 
 This module manages GitHub Actions repository permissions to control allowed actions and default workflow permissions.
 
