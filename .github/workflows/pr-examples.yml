@@ -7,6 +7,22 @@ on:
   merge_group:
   workflow_dispatch:
 
+env:
+  ARM_CLIENT_ID_OVERRIDE: ${{ secrets.ARM_CLIENT_ID_OVERRIDE }}
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID_OVERRIDE: ${{ secrets.ARM_SUBSCRIPTION_ID_OVERRIDE }}
+  TEST_SUBSCRIPTION_IDS: ${{ secrets.TEST_SUBSCRIPTION_IDS }}
+  ARM_TENANT_ID_OVERRIDE: ${{ secrets.ARM_TENANT_ID_OVERRIDE }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_USE_OIDC: "true"
+  FORCE_COLOR: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SECRETS_CONTEXT: ${{ toJson(secrets) }}
+  TF_IN_AUTOMATION: 1
+  TF_VAR_enable_telemetry: "false"
+  VARS_CONTEXT: ${{ toJson(vars) }}
+  AVM_ENABLE_AZURE_SUBSCRIPTIONS: ${{ vars.AVM_ENABLE_AZURE_SUBSCRIPTIONS || 'false' }}
+
 jobs:
   check:
     permissions: {}
@@ -20,11 +36,236 @@ jobs:
             echo "### WARNING: This workflow is disabled for forked repositories. Please follow the [release branch process](https://azure.github.io/Azure-Verified-Modules/contributing/terraform/terraform-contribution-flow/#5-create-a-pull-request-to-the-upstream-repository) if end to end tests are required." >> $env:GITHUB_STEP_SUMMARY
           }
 
-  run-examples-workflow:
+  getexamples:
     if: github.event.pull_request.head.repo.fork == false
-    uses: ./.github/workflows/managed-pr-check.yml
-    name: run examples workflow (local)
-    secrets: inherit
+    runs-on: ubuntu-latest
+    needs: check
+    outputs:
+      examples: ${{ steps.collect.outputs.examples }}
+    permissions:
+      contents: read
+    environment: test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: collect examples
+        id: collect
+        working-directory: examples
+        shell: pwsh
+        run: |
+          $examples = Get-ChildItem -Directory
+          $processedExamples = @()
+
+          $useSubscriptions = $env:AVM_ENABLE_AZURE_SUBSCRIPTIONS -eq 'true'
+          $subscriptions = @()
+
+          if ($useSubscriptions -and -not [string]::IsNullOrEmpty($env:TEST_SUBSCRIPTION_IDS)) {
+            try {
+              $parsed = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+              if ($null -ne $parsed) {
+                if ($parsed -is [System.Array]) {
+                  $subscriptions = $parsed
+                } else {
+                  $subscriptions = @($parsed)
+                }
+              }
+            } catch {
+              Write-Host "Unable to parse TEST_SUBSCRIPTION_IDS; defaulting to placeholder subscription metadata."
+              $useSubscriptions = $false
+            }
+          } else {
+            $useSubscriptions = $false
+          }
+
+          for ($i = 0; $i -lt $examples.Count; $i++) {
+            if (Test-Path "$(($examples[$i].FullName))/.e2eignore") {
+              Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
+              continue
+            }
+
+            if ($useSubscriptions -and $subscriptions.Count -gt 0) {
+              $subscriptionIndex = $i % $subscriptions.Length
+              $subscriptionId = $subscriptions[$subscriptionIndex].id
+              $subscriptionName = $subscriptions[$subscriptionIndex].name
+              $useAzure = $true
+            } else {
+              $subscriptionIndex = $i
+              $subscriptionId = "placeholder-$([Guid]::NewGuid())"
+              $subscriptionName = "$(($examples[$i].Name))-placeholder"
+              $useAzure = $false
+            }
+
+            $processedExamples += @{
+              name              = $examples[$i].Name
+              subscriptionIndex = $subscriptionIndex
+              subscriptionId    = $subscriptionId
+              subscriptionName  = $subscriptionName
+              useAzure          = $useAzure
+            }
+          }
+
+          $json = ConvertTo-Json $processedExamples -Compress
+          Write-Host "Matrix payload: $json"
+          Write-Output "examples=$json" >> $env:GITHUB_OUTPUT
+
+  checksetup:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: getexamples
+    outputs:
+      setup_exists: ${{ steps.detect.outputs.setup_exists }}
+    permissions:
+      contents: read
+    environment: empty-no-approval
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: detect setup script
+        id: detect
+        shell: bash
+        run: |
+          if [ -f examples/setup.sh ]; then
+            echo "setup_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "setup_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  globalsetup:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: checksetup
     permissions:
       id-token: write
       contents: read
+    environment: test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Get Default Subscription ID
+        if: ${{ env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && needs.checksetup.outputs.setup_exists == 'true' }}
+        id: get-subscription
+        shell: pwsh
+        run: |
+          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+          $defaultSubscription = $subscriptions[0]
+          echo "::add-mask::$($defaultSubscription.id)"
+          Write-Output "subscriptionId=$($defaultSubscription.id)" >> $env:GITHUB_OUTPUT
+          Write-Output "subscriptionName=$($defaultSubscription.name)" >> $env:GITHUB_OUTPUT
+      - name: Run global setup script
+        if: ${{ env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && needs.checksetup.outputs.setup_exists == 'true' }}
+        shell: bash
+        run: |
+          set -e
+
+          export ARM_SUBSCRIPTION_ID=${{ steps.get-subscription.outputs.subscriptionId }}
+          echo "Using subscription ${{ steps.get-subscription.outputs.subscriptionName }} $ARM_SUBSCRIPTION_ID for global setup"
+
+          export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
+          curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
+          source ../prepare-credential.sh
+
+          ./avm global-setup
+
+  testexamples:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: [getexamples, checksetup, globalsetup]
+    permissions:
+      id-token: write
+      contents: read
+    environment: test
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.getexamples.outputs.examples) }}
+      fail-fast: false
+    steps:
+      - name: Set up Docker
+        uses: docker/setup-docker-action@b60f85385d03ac8acfca6d9996982511d8620a19 # v4.3.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Test example
+        shell: bash
+        env:
+          AVM_EXAMPLE: ${{ matrix.name }}
+          AVM_RUNNING_IN_GITHUB_ACTIONS: true
+        run: |
+          set -e
+
+          SUBSCRIPTION_ID="${{ matrix.subscriptionId }}"
+          SUBSCRIPTION_NAME="${{ matrix.subscriptionName }}"
+
+          if [ "${{ matrix.useAzure }}" = "true" ]; then
+            echo "::add-mask::${SUBSCRIPTION_ID}"
+            export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
+            echo "Using subscription ${SUBSCRIPTION_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
+
+            export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
+            curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
+            source ../prepare-credential.sh
+          else
+            echo "Azure subscription integration disabled; running example without ARM credentials."
+          fi
+
+          sudo chmod 666 /var/run/docker.sock
+
+          ./avm test-examples
+
+  checkteardown:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: testexamples
+    permissions:
+      contents: read
+    environment: empty-no-approval
+    outputs:
+      teardown_exists: ${{ steps.detect.outputs.teardown_exists }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: detect teardown script
+        id: detect
+        shell: bash
+        run: |
+          if [ -f examples/teardown.sh ]; then
+            echo "teardown_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "teardown_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  globalteardown:
+    if: github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: checkteardown
+    permissions:
+      id-token: write
+      contents: read
+    environment: test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Get Default Subscription ID
+        if: ${{ env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && needs.checkteardown.outputs.teardown_exists == 'true' }}
+        id: get-subscription
+        shell: pwsh
+        run: |
+          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+          $defaultSubscription = $subscriptions[0]
+          echo "::add-mask::$($defaultSubscription.id)"
+          Write-Output "subscriptionId=$($defaultSubscription.id)" >> $env:GITHUB_OUTPUT
+          Write-Output "subscriptionName=$($defaultSubscription.name)" >> $env:GITHUB_OUTPUT
+      - name: Run teardown script
+        if: ${{ env.AVM_ENABLE_AZURE_SUBSCRIPTIONS == 'true' && needs.checkteardown.outputs.teardown_exists == 'true' }}
+        shell: bash
+        run: |
+          set -e
+
+          export ARM_SUBSCRIPTION_ID=${{ steps.get-subscription.outputs.subscriptionId }}
+          echo "Using subscription ${{ steps.get-subscription.outputs.subscriptionName }} $ARM_SUBSCRIPTION_ID for global teardown"
+
+          export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
+          curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
+          source ../prepare-credential.sh
+
+          ./avm global-teardown
+
+  testexamplescomplete:
+    if: always() && github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    needs: testexamples
+    environment: empty-no-approval
+    steps:
+      - run: echo "All tests passed"
