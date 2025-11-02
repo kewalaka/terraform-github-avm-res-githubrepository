@@ -90,9 +90,6 @@ jobs:
             $useSubscriptions = $false
           }
 
-          $placeholderSubscriptionId = "00000000-0000-0000-0000-000000000000"
-          $placeholderSubscriptionName = "local-placeholder"
-
           for ($i = 0; $i -lt $examples.Count; $i++) {
             if (Test-Path "$(($examples[$i].FullName))/.e2eignore") {
               Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
@@ -102,16 +99,19 @@ jobs:
               $subscriptionIndex = $i % $subscriptions.Length
               $subscriptionId = $subscriptions[$subscriptionIndex].id
               $subscriptionName = $subscriptions[$subscriptionIndex].name
+              $useAzure = $true
             } else {
               $subscriptionIndex = $i
-              $subscriptionId = $placeholderSubscriptionId
-              $subscriptionName = $placeholderSubscriptionName
+              $subscriptionId = "placeholder-$([Guid]::NewGuid())"
+              $subscriptionName = "$(($examples[$i].Name))-placeholder"
+              $useAzure = $false
             }
             $processedExamples += @{
               name              = $examples[$i].Name
               subscriptionIndex = $subscriptionIndex
               subscriptionId    = $subscriptionId
               subscriptionName  = $subscriptionName
+              useAzure          = $useAzure
             }
           }
 
@@ -199,9 +199,8 @@ jobs:
 
           SUBSCRIPTION_ID="${{ matrix.subscriptionId }}"
           SUBSCRIPTION_NAME="${{ matrix.subscriptionName }}"
-          PLACEHOLDER_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 
-          if [ "${AVM_ENABLE_AZURE_SUBSCRIPTIONS}" = "true" ] && [ -n "$SUBSCRIPTION_ID" ] && [ "$SUBSCRIPTION_ID" != "$PLACEHOLDER_SUBSCRIPTION_ID" ]; then
+          if [ "${{ matrix.useAzure }}" = "true" ]; then
             echo "::add-mask::${SUBSCRIPTION_ID}"
             export ARM_SUBSCRIPTION_ID="$SUBSCRIPTION_ID"
             echo "Using subscription ${SUBSCRIPTION_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
@@ -211,7 +210,7 @@ jobs:
             curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
             source ../prepare-credential.sh
           else
-            echo "TEST_SUBSCRIPTION_IDS not supplied; skipping Azure credential preparation."
+            echo "Azure subscription integration disabled; running example without ARM credentials."
           fi
 
           # Fix Docker socket permissions for CI
