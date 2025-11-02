@@ -82,6 +82,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TF_IN_AUTOMATION: 1
       TF_VAR_enable_telemetry: "false"
+      TF_VAR_github_app_id: ${{ secrets.TF_VAR_GITHUB_APP_ID }}
+      TF_VAR_github_app_installation_id: ${{ secrets.TF_VAR_GITHUB_APP_INSTALLATION_ID }}
+      TF_VAR_github_app_pem_file: ${{ secrets.TF_VAR_GITHUB_APP_PEM_FILE }}
+      TF_VAR_github_organization_name: ${{ secrets.TF_VAR_GITHUB_ORGANIZATION_NAME }}
     strategy:
       matrix: ${{ fromJson(needs.collect-examples.outputs.examples) }}
       fail-fast: false
@@ -89,33 +93,6 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-docker-action@b60f85385d03ac8acfca6d9996982511d8620a19 # v4.3.0
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Normalize TF_VAR secrets
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python3 <<'PY'
-          import os
-
-          env_path = os.environ["GITHUB_ENV"]
-          count = 0
-          with open(env_path, "a", encoding="utf-8") as handle:
-              for key, value in os.environ.items():
-                  if not key.startswith("TF_VAR_"):
-                      continue
-
-                  lower_key = "TF_VAR_" + key[7:].lower()
-                  if lower_key == key or lower_key in os.environ:
-                      continue
-
-                  handle.write(f"{lower_key}<<'EOF'\n{value}\nEOF\n")
-                  count += 1
-
-          if count:
-              print(f"Normalized {count} TF_VAR secrets for Terraform consumption.")
-          else:
-              print("No TF_VAR secrets required normalization.")
-          PY
       - name: Test example
         shell: bash
         env:
