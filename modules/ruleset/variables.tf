@@ -118,7 +118,7 @@ variable "rules" {
     required_deployments     = optional(object({
       required_deployment_environments = list(string)
     }))
-    
+
     # Tag rules
     tag_name_pattern = optional(object({
       operator = string

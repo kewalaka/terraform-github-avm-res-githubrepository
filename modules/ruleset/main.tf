@@ -80,6 +80,10 @@ resource "github_repository_ruleset" "this" {
     }
 
     # Branch rules
+    # Note: These boolean rules (creation, deletion, required_linear_history, etc.) are enabled
+    # purely by their presence in the rules block. The for_each checks if the rule is set (not null),
+    # and if so, includes an empty content block to activate the rule.
+
     dynamic "creation" {
       for_each = var.rules.creation != null ? [var.rules.creation] : []
       content {}
@@ -88,6 +92,10 @@ resource "github_repository_ruleset" "this" {
     dynamic "update" {
       for_each = var.rules.update != null ? [var.rules.update] : []
       content {
+        # update_allows_fetch_and_merge controls whether updates can be fast-forward merges
+        # When non_fast_forward is enabled, we want to block non-fast-forward updates,
+        # so we set update_allows_fetch_and_merge to false (inverse of non_fast_forward).
+        # When non_fast_forward is not set, we allow fetch and merge (default: true).
         update_allows_fetch_and_merge = var.rules.non_fast_forward != null ? !var.rules.non_fast_forward : true
       }
     }
