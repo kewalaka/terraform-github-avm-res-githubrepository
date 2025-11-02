@@ -109,7 +109,7 @@ jobs:
         shell: bash
 
   globalsetup:
-    if: needs.checksetup.outputs.setup_exists == 'true' && github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
+    if: github.event.repository.name != 'terraform-azurerm-avm-template' && github.event.pull_request.head.repo.fork == false
     runs-on: ubuntu-latest
     environment: test
     needs: checksetup
@@ -117,6 +117,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
       - name: Get Default Subscription ID
         id: get-subscription
+        if: ${{ needs.checksetup.outputs.setup_exists == 'true' }}
         run: |
           $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
           $defaultSubscription = $subscriptions[0]
@@ -125,6 +126,7 @@ jobs:
           Write-Output "subscriptionName=$($defaultSubscription.name)" >> $env:GITHUB_OUTPUT
         shell: pwsh
       - name: Run global setup script
+        if: ${{ needs.checksetup.outputs.setup_exists == 'true' }}
         run: |
           set -e
 
@@ -136,7 +138,7 @@ jobs:
           curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
           source ../prepare-credential.sh
 
-          ./avm global-teardown
+          ./avm global-setup
         shell: bash
 
   testexamples:
@@ -150,7 +152,7 @@ jobs:
       TF_VAR_enable_telemetry: false
     strategy:
       matrix:
-        include: ${{ fromJson(needs.getexamples.outputs.examples) }}
+        include: ${{ fromJson(needs.getexamples.outputs.examples || '[]') }}
       fail-fast: false
     steps:
       - name: Set up Docker
