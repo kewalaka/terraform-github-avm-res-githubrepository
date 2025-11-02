@@ -69,15 +69,19 @@ jobs:
           $examples = Get-ChildItem -Directory
           $processedExamples = @()
 
-          # NOTE: Do not emit secrets (subscription IDs) in job outputs; compute per-matrix job instead
+          $subscriptions = $env:TEST_SUBSCRIPTION_IDS | ConvertFrom-Json
+
           for ($i = 0; $i -lt $examples.Count; $i++) {
             if (Test-Path "$(($examples[$i].FullName))/.e2eignore") {
               Write-Host "Skipping example $(($examples[$i].Name)) because it contains a .e2eignore file."
               continue
             }
+            $subscriptionIndex = $i % $subscriptions.Length
             $processedExamples += @{
               name              = $examples[$i].Name
-              subscriptionIndex = $i
+              subscriptionIndex = $subscriptionIndex
+              subscriptionId    = $subscriptions[$subscriptionIndex].id
+              subscriptionName  = $subscriptions[$subscriptionIndex].name
             }
           }
 
@@ -148,7 +152,7 @@ jobs:
       TF_VAR_enable_telemetry: false
     strategy:
       matrix:
-        include: ${{ fromJson((needs.getexamples.outputs.examples && needs.getexamples.outputs.examples != '[]' && needs.getexamples.outputs.examples) || '[{"name":"__no_examples__","subscriptionIndex":0,"subscriptionId":"00000000-0000-0000-0000-000000000000","subscriptionName":"none"}]') }}
+        include: ${{ fromJson(needs.getexamples.outputs.examples) }}
       fail-fast: false
     steps:
       - name: Set up Docker
@@ -156,7 +160,6 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
 
       - name: Test example
-        if: ${{ matrix.name != '__no_examples__' }}
         shell: bash
         env:
           AVM_EXAMPLE: ${{ matrix.name }}
@@ -164,23 +167,9 @@ jobs:
         run: |
           set -e
 
-          # Derive subscription from TEST_SUBSCRIPTION_IDS using the matrix subscriptionIndex
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update -y >/dev/null 2>&1 || true
-            sudo apt-get install -y jq >/dev/null 2>&1 || true
-          fi
-          SUB_COUNT=$(echo "$TEST_SUBSCRIPTION_IDS" | jq 'length')
-          if [ -z "$SUB_COUNT" ] || [ "$SUB_COUNT" -eq 0 ]; then
-            echo "ERROR: TEST_SUBSCRIPTION_IDS is empty; cannot run examples." >&2
-            exit 1
-          fi
-          SUB_IDX_RAW=${{ matrix.subscriptionIndex }}
-          SUB_IDX=$(( SUB_IDX_RAW % SUB_COUNT ))
-          echo "$TEST_SUBSCRIPTION_IDS" | jq -e ".[${SUB_IDX}]" >/dev/null
-          export ARM_SUBSCRIPTION_ID=$(echo "$TEST_SUBSCRIPTION_IDS" | jq -r ".[${SUB_IDX}].id")
-          SUB_NAME=$(echo "$TEST_SUBSCRIPTION_IDS" | jq -r ".[${SUB_IDX}].name")
-          echo "::add-mask::${ARM_SUBSCRIPTION_ID}"
-          echo "Using subscription ${SUB_NAME} ${ARM_SUBSCRIPTION_ID} (index: ${SUB_IDX}) for example $AVM_EXAMPLE"
+          echo "::add-mask::${{ matrix.subscriptionId }}"
+          export ARM_SUBSCRIPTION_ID=${{ matrix.subscriptionId }}
+          echo "Using subscription ${{ matrix.subscriptionName }} $ARM_SUBSCRIPTION_ID (index: ${{ matrix.subscriptionIndex }}) for example $AVM_EXAMPLE"
 
           export REMOTE_SCRIPT="https://raw.githubusercontent.com/Azure/avm-terraform-governance/main/scripts"
           # This needs to be in the parent directory to avoid git seeing the file as a change
@@ -192,9 +181,6 @@ jobs:
 
           ./avm test-examples
 
-      - name: No examples to test
-        if: ${{ matrix.name == '__no_examples__' }}
-        run: echo "No examples found to test in ./examples (or they were all ignored)"
 
   checkteardown:
     runs-on: ubuntu-latest
