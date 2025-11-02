@@ -114,10 +114,10 @@ resource "github_repository_ruleset" "this" {
 
     # Workflow rules
     dynamic "required_workflows" {
-      for_each = var.rules.required_workflows != null ? [var.rules.required_workflows] : []
+      for_each = length(try(var.rules.required_workflows.required_workflow, [])) > 0 ? [var.rules.required_workflows] : []
       content {
         dynamic "required_workflow" {
-          for_each = required_workflows.value.required_workflow
+          for_each = try(required_workflows.value.required_workflow, [])
           content {
             path          = required_workflow.value.path
             repository_id = required_workflow.value.repository_id
