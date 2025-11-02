@@ -80,45 +80,19 @@ resource "github_repository_ruleset" "this" {
     }
 
     # Branch rules
-    # Note: These boolean rules (creation, deletion, required_linear_history, etc.) are enabled
-    # purely by their presence in the rules block. The for_each checks if the rule is set (not null),
-    # and if so, includes an empty content block to activate the rule.
-
-    dynamic "creation" {
-      for_each = var.rules.creation != null ? [var.rules.creation] : []
-      content {}
-    }
-
-    dynamic "update" {
-      for_each = var.rules.update != null ? [var.rules.update] : []
-      content {
-        # update_allows_fetch_and_merge controls whether updates can be fast-forward merges
-        # When non_fast_forward is enabled, we want to block non-fast-forward updates,
-        # so we set update_allows_fetch_and_merge to false (inverse of non_fast_forward).
-        # When non_fast_forward is not set, we allow fetch and merge (default: true).
-        update_allows_fetch_and_merge = var.rules.non_fast_forward != null ? !var.rules.non_fast_forward : true
-      }
-    }
-
-    dynamic "deletion" {
-      for_each = var.rules.deletion != null ? [var.rules.deletion] : []
-      content {}
-    }
-
-    dynamic "required_linear_history" {
-      for_each = var.rules.required_linear_history != null ? [var.rules.required_linear_history] : []
-      content {}
-    }
-
-    dynamic "required_signatures" {
-      for_each = var.rules.required_signatures != null ? [var.rules.required_signatures] : []
-      content {}
-    }
-
-    dynamic "non_fast_forward" {
-      for_each = var.rules.non_fast_forward != null ? [var.rules.non_fast_forward] : []
-      content {}
-    }
+    # The GitHub provider exposes these as optional boolean attributes on the rules block.
+    # Setting them directly avoids unsupported dynamic blocks reported in Terraform plan output.
+    creation                = var.rules.creation
+    update                  = var.rules.update
+    deletion                = var.rules.deletion
+    required_linear_history = var.rules.required_linear_history
+    required_signatures     = var.rules.required_signatures
+    non_fast_forward        = var.rules.non_fast_forward
+    update_allows_fetch_and_merge = (
+      var.rules.update == null
+      ? null
+      : (var.rules.non_fast_forward != null ? !var.rules.non_fast_forward : true)
+    )
 
     dynamic "required_deployments" {
       for_each = var.rules.required_deployments != null ? [var.rules.required_deployments] : []
