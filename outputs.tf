@@ -34,7 +34,7 @@ output "repository" {
 }
 
 output "resource_id" {
-  description = "The ID of the repository."
+  description = "The resource ID of the repository."
   value       = github_repository.this.id
 }
 
