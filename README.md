@@ -661,11 +661,11 @@ Description: The GitHub repository resource created by this module.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The ID of the repository.
+Description: The resource ID of the GitHub repository.
 
 ### <a name="output_rulesets"></a> [rulesets](#output\_rulesets)
 
-Description: Rulesets applied to the repository.
+Description: Rulesets applied to the GitHub repository.
 
 ## Modules
 
