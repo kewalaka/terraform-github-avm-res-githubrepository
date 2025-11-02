@@ -8,8 +8,6 @@ on:
 
 jobs:
   check:
-    # Disabled to align with main; superseded by e2e/linting/version-check workflows
-    if: ${{ false }}
     permissions: {}
     runs-on: ubuntu-latest
     steps:
@@ -22,9 +20,7 @@ jobs:
           }
 
   run-managed-workflow:
-    # Disabled to align with main; superseded by e2e/linting/version-check workflows
-    if: ${{ false }}
-    # if: github.event.pull_request.head.repo.fork == false
+    if: github.event.pull_request.head.repo.fork == false
     uses: Azure/avm-terraform-governance/.github/workflows/managed-pr-check.yml@main
     name: run managed workflow
     secrets: inherit
