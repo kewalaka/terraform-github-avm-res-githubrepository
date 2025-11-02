@@ -1,85 +1,54 @@
 <!-- BEGIN_TF_DOCS -->
-# Testing submodules with an existing repository
+# Using an Existing Repository
 
-This example is designed to test the various submodules being called independently.
+This example demonstrates how to use the module with an existing GitHub repository without creating a new one.
 
-GitHub App permissions required:
+## Overview
 
-- Repository Environment: write
+The example shows two patterns:
+
+1. **Without repository\_node\_id**: Configure subcomponents (environments, secrets, variables) on an existing repository. Branch protection will be skipped with a warning.
+
+2. **With repository\_node\_id**: Same as above, but also enable branch protection by providing the repository's node ID.
+
+## How to Obtain repository\_node\_id
+
+If you want to enable branch protection on an existing repository, you'll need to obtain its node ID. You can get this via:
+
+**Using GitHub CLI:**
+```bash
+gh api graphql -f query='
+  query($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      id
+    }
+  }
+' -f owner=YOUR_ORG -f name=YOUR_REPO
+```
+
+**Using the Terraform GitHub provider:**
+Create a data source in your Terraform code (outside this module):
+```hcl
+data "github_repository" "existing" {
+  name = "my-existing-repo"
+}
+
+# Use: data.github_repository.existing.node_id
+```
+
+## GitHub App Permissions Required
+
+- Repository Contents: write (for branches, files)
+- Repository Administration: write (for branch protection, environments)
+- Repository Environments: write
 - Repository Secrets: write
 - Repository Codespaces secrets: write (optional, if setting these)
 - Repository Dependabot secrets: write (optional, if setting these)
 
 ref: <https://docs.github.com/en/rest/actions/secrets?apiVersion=2022-11-28#create-or-update-an-environment-secret>
 
-```hcl
-terraform {
-  required_version = "~> 1.9"
-  required_providers {
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.5.0"
-    }
-    # modtm = {
-    #   source  = "azure/modtm"
-    #   version = "~> 0.3"
-    # }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.5"
-    }
-  }
-}
-
-provider "github" {
-  owner = var.github_organization_name
-  app_auth {
-    id              = var.github_app_id
-    installation_id = var.github_app_installation_id
-    pem_file        = var.github_app_pem_file
-  }
-}
-
-resource "random_pet" "repo_name" {
-  length = 2
-}
-
-resource "github_repository" "this" {
-  name                 = random_pet.repo_name.id
-  visibility           = "public"
-  archive_on_destroy   = false
-  vulnerability_alerts = true
-}
-
-locals {
-  secrets = {
-    repo1 = {
-      name            = "REPO_SECRET_1"
-      plaintext_value = "supersecretvalue"
-    }
-    env1 = {
-      name            = "ENV_SECRET_1"
-      plaintext_value = "anothersecretvalue"
-      environment     = "production"
-    }
-  }
-}
-
-module "avm_res_githubrepository_secret" {
-  source = "../..//modules/secret"
-
-  for_each = local.secrets
-
-  repository = { id = github_repository.this.id }
-
-  name            = each.value.name
-  plaintext_value = try(each.value.plaintext_value, null)
-  encrypted_value = try(each.value.encrypted_value, null)
-  environment     = try(each.value.environmnet, null)
-}
-```
-
 <!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD013 -->  
 ## Requirements
 
 The following requirements are needed by this module:
@@ -95,7 +64,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [github_repository.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
+- [github_repository.external](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
 - [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -133,19 +102,37 @@ No optional inputs.
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_branch_protection_warning_example1"></a> [branch\_protection\_warning\_example1](#output\_branch\_protection\_warning\_example1)
+
+Description: Warning from example 1 (without node\_id)
+
+### <a name="output_branch_protection_warning_example2"></a> [branch\_protection\_warning\_example2](#output\_branch\_protection\_warning\_example2)
+
+Description: Warning from example 2 (with node\_id)
+
+### <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name)
+
+Description: The name of the managed repository
 
 ## Modules
 
 The following Modules are called:
 
-### <a name="module_avm_res_githubrepository_secret"></a> [avm\_res\_githubrepository\_secret](#module\_avm\_res\_githubrepository\_secret)
+### <a name="module_existing_repo_with_node_id"></a> [existing\_repo\_with\_node\_id](#module\_existing\_repo\_with\_node\_id)
 
-Source: ../..//modules/secret
+Source: ../../
 
 Version:
 
-<!-- markdownlint-disable MD013 -->
+### <a name="module_existing_repo_without_node_id"></a> [existing\_repo\_without\_node\_id](#module\_existing\_repo\_without\_node\_id)
+
+Source: ../../
+
+Version:
+
+<!-- markdownlint-disable-next-line MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 
