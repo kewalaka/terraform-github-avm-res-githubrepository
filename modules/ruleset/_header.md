@@ -22,7 +22,8 @@ This module is used to manage repository rulesets in GitHub repositories. Rulese
 
 ```terraform
 module "main_branch_ruleset" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "main-branch-protection"
   repository = {
@@ -57,7 +58,8 @@ module "main_branch_ruleset" {
 
 ```terraform
 module "tag_protection" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "release-tag-protection"
   repository = {
@@ -91,7 +93,8 @@ module "tag_protection" {
 
 ```terraform
 module "workflow_protection" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "workflow-file-protection"
   repository = {
@@ -119,6 +122,17 @@ module "workflow_protection" {
   }
 }
 ```
+
+## Rule Behavior Notes
+
+### Update vs Non-Fast-Forward
+
+The `update` and `non_fast_forward` rules work together to control branch update behavior:
+
+- **`non_fast_forward`**: When set to `true`, blocks non-fast-forward pushes (force pushes that rewrite history)
+- **`update`**: Controls whether updates to refs are allowed. When `non_fast_forward` is enabled, the `update` rule automatically sets `update_allows_fetch_and_merge` to `false` to enforce the non-fast-forward restriction
+
+**Best practice**: Use `non_fast_forward = true` alone to block force pushes. Only set `update = true` explicitly if you need to block all updates regardless of fast-forward status.
 
 ## Migration from Branch Protection
 

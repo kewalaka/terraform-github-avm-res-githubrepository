@@ -14,6 +14,17 @@ The intention is to separately develop another module for GitHub Organizations a
 - Manage variables & secrets at the repository and environment scope.
 - Enable or disable features such as issues, discussions, wiki, etc.
 
+## Migration from Branch Protection to Rulesets
+
+Rulesets are the newer way to protect branches and tags, offering more flexibility than classic branch protection policies. Key advantages include:
+
+- **Target flexibility**: Can protect branches, tags, or apply to push events
+- **Better pattern matching**: More powerful include/exclude patterns with wildcards
+- **Enforcement modes**: `active`, `evaluate` (for testing), and `disabled`
+- **Bypass controls**: Granular control with bypass actors and modes
+
+For new implementations, use rulesets instead of branch protection. See the `examples/rulesets` directory and the `modules/ruleset` submodule documentation for detailed usage.
+
 TODO:
 
 - Testing for adding team permissions

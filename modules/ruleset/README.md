@@ -23,7 +23,8 @@ This module is used to manage repository rulesets in GitHub repositories. Rulese
 
 ```terraform
 module "main_branch_ruleset" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "main-branch-protection"
   repository = {
@@ -58,7 +59,8 @@ module "main_branch_ruleset" {
 
 ```terraform
 module "tag_protection" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "release-tag-protection"
   repository = {
@@ -92,7 +94,8 @@ module "tag_protection" {
 
 ```terraform
 module "workflow_protection" {
-  source = "Azure/avm-res-githubrepository/github//modules/ruleset"
+  source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
+  # For local development: source = "./modules/ruleset"
 
   name       = "workflow-file-protection"
   repository = {
@@ -121,6 +124,17 @@ module "workflow_protection" {
 }
 ```
 
+## Rule Behavior Notes
+
+### Update vs Non-Fast-Forward
+
+The `update` and `non_fast_forward` rules work together to control branch update behavior:
+
+- **`non_fast_forward`**: When set to `true`, blocks non-fast-forward pushes (force pushes that rewrite history)
+- **`update`**: Controls whether updates to refs are allowed. When `non_fast_forward` is enabled, the `update` rule automatically sets `update_allows_fetch_and_merge` to `false` to enforce the non-fast-forward restriction
+
+**Best practice**: Use `non_fast_forward = true` alone to block force pushes. Only set `update = true` explicitly if you need to block all updates regardless of fast-forward status.
+
 ## Migration from Branch Protection
 
 Rulesets provide more flexibility than classic branch protection policies and are recommended for new implementations. Key differences:
@@ -138,8 +152,8 @@ When migrating from branch protection to rulesets:
 3. Test in evaluate mode before switching to active
 4. Remove old branch protection policies once rulesets are verified
 
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD033 -->
-<!-- markdownlint-disable MD013 -->  
 ## Requirements
 
 The following requirements are needed by this module:
@@ -160,6 +174,24 @@ The following resources are used by this module:
 
 The following input variables are required:
 
+### <a name="input_conditions"></a> [conditions](#input\_conditions)
+
+Description: Conditions for the ruleset.
+- ref\_name: Reference name patterns to include and exclude.
+  - include: List of ref name patterns to include (e.g., ["refs/heads/main", "refs/heads/release/*"]).
+  - exclude: List of ref name patterns to exclude (e.g., ["refs/heads/dev"]).
+
+Type:
+
+```hcl
+object({
+    ref_name = object({
+      include = list(string)
+      exclude = optional(list(string), [])
+    })
+  })
+```
+
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of the ruleset.
@@ -176,24 +208,6 @@ Type:
 object({
     id   = string
     name = string
-  })
-```
-
-### <a name="input_conditions"></a> [conditions](#input\_conditions)
-
-Description: Conditions for the ruleset.
-- ref\_name: Reference name patterns to include and exclude.
-  - include: List of ref name patterns to include (e.g., ["refs/heads/main", "refs/heads/release/*"]).
-  - exclude: List of ref name patterns to exclude (e.g., ["refs/heads/dev"]).
-
-Type:
-
-```hcl
-object({
-    ref_name = object({
-      include = list(string)
-      exclude = optional(list(string), [])
-    })
   })
 ```
 
@@ -236,7 +250,7 @@ Default: `"active"`
 
 ### <a name="input_rules"></a> [rules](#input\_rules)
 
-Description: Rules to apply in the ruleset. All rules are optional.
+Description: Rules to apply in the ruleset. All rules are optional.  
 
 Pull Request Rules:
 - pull\_request: Require pull request before merging.
@@ -244,24 +258,24 @@ Pull Request Rules:
   - require\_code\_owner\_review: Require code owner review.
   - require\_last\_push\_approval: Require approval of the most recent push.
   - required\_approving\_review\_count: Number of required approving reviews.
-  - required\_review\_thread\_resolution: Require all conversations to be resolved.
+  - required\_review\_thread\_resolution: Require all conversations to be resolved.  
 
 Status Check Rules:
 - required\_status\_checks: Require status checks to pass.
   - required\_check: List of required status checks.
     - context: The status check context name.
     - integration\_id: Optional integration ID.
-  - strict\_required\_status\_checks\_policy: Require branches to be up to date.
+  - strict\_required\_status\_checks\_policy: Require branches to be up to date.  
 
 Commit Rules:
 - committer\_email\_pattern: Require committer email to match pattern.
 - commit\_message\_pattern: Require commit message to match pattern.
-- commit\_author\_email\_pattern: Require commit author email to match pattern.
+- commit\_author\_email\_pattern: Require commit author email to match pattern.  
   Each pattern object contains:
   - operator: The operator (starts\_with, ends\_with, contains, regex).
   - pattern: The pattern to match.
   - name: Optional name for the rule.
-  - negate: Whether to negate the match.
+  - negate: Whether to negate the match.  
 
 Branch Rules:
 - creation: Block creation of matching refs.
@@ -271,10 +285,10 @@ Branch Rules:
 - required\_signatures: Require signed commits.
 - non\_fast\_forward: Block non-fast-forward pushes.
 - required\_deployments: Require deployments to succeed.
-  - required\_deployment\_environments: List of required deployment environments.
+  - required\_deployment\_environments: List of required deployment environments.  
 
 Tag Rules:
-- tag\_name\_pattern: Require tag name to match pattern (similar structure to commit patterns).
+- tag\_name\_pattern: Require tag name to match pattern (similar structure to commit patterns).  
 
 Workflow Rules:
 - required\_workflows: Require workflows to pass.
@@ -337,7 +351,7 @@ object({
     required_deployments     = optional(object({
       required_deployment_environments = list(string)
     }))
-    
+
     # Tag rules
     tag_name_pattern = optional(object({
       operator = string
@@ -387,7 +401,7 @@ Description: The ruleset ID within GitHub.
 
 No modules.
 
-<!-- markdownlint-disable-next-line MD013 -->
+<!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
 

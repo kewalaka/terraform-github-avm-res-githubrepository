@@ -1,124 +1,299 @@
-# Rulesets Example
+<!-- BEGIN_TF_DOCS -->
+# GitHub repository with rulesets
 
-This example demonstrates how to use the repository rulesets feature to enforce policies on branches, tags, and pushes.
+This example demonstrates the use of repository rulesets to enforce policies on branches, tags, and pushes.
 
-## Features Demonstrated
+Rulesets are the newer way to protect branches and tags, offering more flexibility than classic branch protection policies.
 
-- **Branch Protection with Rulesets**: Protect the `main` and `release/*` branches with comprehensive rules
-- **Tag Protection**: Enforce semantic versioning for tags matching `v*` pattern
-- **Flexible Enforcement**: Use `active` mode for production branches and `evaluate` mode for testing
-- **Multiple Rule Types**: 
-  - Pull request requirements (reviews, code owners, conversation resolution)
-  - Required status checks
-  - Signed commits and linear history
-  - Protection against deletions and force pushes
-  - Tag naming patterns
+This example shows:
+- Branch protection rulesets for `main` and `release/*` branches
+- Tag protection rulesets for semantic versioning
+- Using evaluate mode for testing before enforcement
+- Multiple rule types: pull requests, status checks, signed commits, linear history, and more
 
-## Rulesets vs Branch Protection
+GitHub App permissions required:
 
-This example shows how rulesets provide a modern alternative to classic branch protection:
+- Repository Administration: write
 
-### Advantages of Rulesets
+Note: Rulesets require the repository to exist first. This example creates a new repository with rulesets applied.
 
-1. **Target Flexibility**: Can protect branches, tags, or apply to push events
-2. **Pattern Matching**: More powerful include/exclude patterns with support for wildcards
-3. **Enforcement Modes**: 
-   - `active` - Rules are enforced
-   - `evaluate` - Rules are checked but not enforced (useful for testing)
-   - `disabled` - Rules are not checked
-4. **Consistent Configuration**: Same rule structure across different target types
-5. **Better Bypass Control**: Granular control with bypass actors and modes
+ref: <https://docs.github.com/en/rest/repos/rules>
 
-### Migration Path
+```hcl
+terraform {
+  required_version = "~> 1.9"
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.5.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+  }
+}
 
-If you're currently using branch protection policies:
+provider "github" {
+  owner = var.github_organization_name
+  app_auth {
+    id              = var.github_app_id
+    installation_id = var.github_app_installation_id
+    pem_file        = var.github_app_pem_file
+  }
+}
 
-1. Create equivalent rulesets with `enforcement = "evaluate"` to test
-2. Verify the rules work as expected
-3. Switch to `enforcement = "active"` 
-4. Remove old branch protection policies
+resource "random_pet" "repo_name" {
+  length = 2
+}
 
-## Usage
+# Create a repository with comprehensive rulesets
+module "github_repository" {
+  source = "../../"
 
-To run this example:
+  name                 = random_pet.repo_name.id
+  organization_name    = var.github_organization_name
+  visibility           = "public"
+  vulnerability_alerts = false
+  archive_on_destroy   = false
 
-```bash
-# Set required variables
-export TF_VAR_github_organization_name="your-org-name"
+  # Create a dev branch for testing
+  branches = {
+    "dev" = {
+      name          = "dev"
+      source_branch = "main"
+    }
+    "release" = {
+      name          = "release"
+      source_branch = "main"
+    }
+  }
 
-# Optionally, configure GitHub App authentication
-export TF_VAR_github_app_id="your-app-id"
-export TF_VAR_github_app_installation_id="your-installation-id"
-export TF_VAR_github_app_pem_file="path/to/pem"
+  # Define rulesets for branch, tag, and push protection
+  rulesets = {
+    # Main branch protection
+    main_protection = {
+      name        = "main-branch-protection"
+      target      = "branch"
+      enforcement = "active"
 
-# Or use a GitHub token
-export GITHUB_TOKEN="your-token"
+      conditions = {
+        ref_name = {
+          include = ["refs/heads/main"]
+          exclude = []
+        }
+      }
 
-# Initialize and apply
-terraform init
-terraform plan
-terraform apply
+      rules = {
+        # Require pull requests with reviews
+        pull_request = {
+          required_approving_review_count   = 2
+          require_code_owner_review         = true
+          required_review_thread_resolution = true
+          require_last_push_approval        = true
+        }
+
+        # Require status checks
+        required_status_checks = {
+          required_check = [
+            {
+              context = "ci/tests"
+            }
+          ]
+          strict_required_status_checks_policy = true
+        }
+
+        # Require signed commits and linear history
+        required_signatures     = true
+        required_linear_history = true
+
+        # Block deletions and non-fast-forward pushes
+        deletion         = true
+        non_fast_forward = true
+      }
+    }
+
+    # Release branch protection
+    release_protection = {
+      name        = "release-branch-protection"
+      target      = "branch"
+      enforcement = "active"
+
+      conditions = {
+        ref_name = {
+          include = ["refs/heads/release/*"]
+          exclude = []
+        }
+      }
+
+      rules = {
+        pull_request = {
+          required_approving_review_count = 1
+          require_code_owner_review       = true
+        }
+
+        required_signatures     = true
+        required_linear_history = true
+        deletion                = true
+        non_fast_forward        = true
+      }
+    }
+
+    # Tag protection for version tags
+    tag_protection = {
+      name        = "semantic-version-tags"
+      target      = "tag"
+      enforcement = "active"
+
+      conditions = {
+        ref_name = {
+          include = ["refs/tags/v*"]
+          exclude = []
+        }
+      }
+
+      rules = {
+        # Block creation, deletion, and updates of tags
+        creation = true
+        deletion = true
+        update   = true
+
+        # Enforce semantic versioning pattern
+        tag_name_pattern = {
+          operator = "regex"
+          pattern  = "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+          name     = "Semantic Versioning"
+          negate   = false
+        }
+      }
+    }
+
+    # Dev branch - more lenient rules
+    dev_protection = {
+      name        = "dev-branch-protection"
+      target      = "branch"
+      enforcement = "evaluate" # Start in evaluate mode
+
+      conditions = {
+        ref_name = {
+          include = ["refs/heads/dev"]
+          exclude = []
+        }
+      }
+
+      rules = {
+        pull_request = {
+          required_approving_review_count = 1
+        }
+      }
+    }
+  }
+}
+
+# Output the created rulesets
+output "repository_name" {
+  description = "The name of the created repository"
+  value       = module.github_repository.repository.name
+}
+
+output "repository_url" {
+  description = "The URL of the created repository"
+  value       = module.github_repository.repository.html_url
+}
+
+output "rulesets" {
+  description = "The rulesets applied to the repository"
+  value       = module.github_repository.rulesets
+  sensitive   = false
+}
 ```
 
-## Rulesets Configured
+<!-- markdownlint-disable MD033 -->
+## Requirements
 
-### 1. Main Branch Protection (`main_protection`)
+The following requirements are needed by this module:
 
-- **Target**: `refs/heads/main`
-- **Enforcement**: Active
-- **Rules**:
-  - Requires 2 approving reviews
-  - Requires code owner review
-  - Requires conversation resolution
-  - Requires last push approval
-  - Requires status check `ci/tests` to pass
-  - Requires branches to be up to date (strict)
-  - Requires signed commits
-  - Requires linear history
-  - Blocks deletions
-  - Blocks non-fast-forward pushes
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
 
-### 2. Release Branch Protection (`release_protection`)
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
 
-- **Target**: `refs/heads/release/*`
-- **Enforcement**: Active
-- **Rules**:
-  - Requires 1 approving review
-  - Requires code owner review
-  - Requires signed commits
-  - Requires linear history
-  - Blocks deletions
-  - Blocks non-fast-forward pushes
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
-### 3. Tag Protection (`tag_protection`)
+<!-- markdownlint-disable MD013 -->
+## Resources
 
-- **Target**: `refs/tags/v*`
-- **Enforcement**: Active
-- **Rules**:
-  - Blocks tag creation (only through proper process)
-  - Blocks tag deletion
-  - Blocks tag updates
-  - Enforces semantic versioning pattern (v1.0.0 format)
+The following resources are used by this module:
 
-### 4. Dev Branch Protection (`dev_protection`)
+- [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
 
-- **Target**: `refs/heads/dev`
-- **Enforcement**: Evaluate (testing mode)
-- **Rules**:
-  - Requires 1 approving review (not enforced, only logged)
+<!-- markdownlint-disable MD013 -->
+## Required Inputs
 
-## Expected Outputs
+The following input variables are required:
 
-After applying, you'll receive:
+### <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name)
 
-- `repository_name` - The name of the created repository
-- `repository_url` - URL to access the repository
-- `rulesets` - Details of all configured rulesets including IDs and ETags
+Description: The name of the GitHub organization
 
-## Cleanup
+Type: `string`
 
-```bash
-terraform destroy
-```
+## Optional Inputs
 
-Note: The repository will be archived instead of deleted by default (controlled by `archive_on_destroy`).
+The following input variables are optional (have default values):
+
+### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
+
+Description: The GitHub App ID for authentication
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id)
+
+Description: The GitHub App installation ID for authentication
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file)
+
+Description: The path to the GitHub App PEM file for authentication
+
+Type: `string`
+
+Default: `""`
+
+## Outputs
+
+The following outputs are exported:
+
+### <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name)
+
+Description: The name of the created repository
+
+### <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url)
+
+Description: The URL of the created repository
+
+### <a name="output_rulesets"></a> [rulesets](#output\_rulesets)
+
+Description: The rulesets applied to the repository
+
+## Modules
+
+The following Modules are called:
+
+### <a name="module_github_repository"></a> [github\_repository](#module\_github\_repository)
+
+Source: ../../
+
+Version:
+
+<!-- markdownlint-disable MD013 -->
+<!-- markdownlint-disable-next-line MD041 -->
+## Data Collection
+
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft's privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+<!-- END_TF_DOCS -->
