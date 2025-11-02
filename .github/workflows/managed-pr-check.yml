@@ -205,7 +205,7 @@ jobs:
             curl -H 'Cache-Control: no-cache, no-store' -sSL "$REMOTE_SCRIPT/gha-azure-cred-prep.sh" -o ../prepare-credential.sh
             source ../prepare-credential.sh
           else
-            echo "TEST_SUBSCRIPTION_IDS not supplied; skipping Azure credential preparation." 
+            echo "TEST_SUBSCRIPTION_IDS not supplied; skipping Azure credential preparation."
           fi
 
           # Fix Docker socket permissions for CI
