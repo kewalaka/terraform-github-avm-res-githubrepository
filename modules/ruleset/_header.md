@@ -25,12 +25,12 @@ module "main_branch_ruleset" {
   source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
   # For local development: source = "./modules/ruleset"
 
-  name       = "main-branch-protection"
+  name = "main-branch-protection"
   repository = {
     id   = "repo-id"
     name = "my-repository"
   }
-  target     = "branch"
+  target      = "branch"
   enforcement = "active"
 
   conditions = {
@@ -61,7 +61,7 @@ module "tag_protection" {
   source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
   # For local development: source = "./modules/ruleset"
 
-  name       = "release-tag-protection"
+  name = "release-tag-protection"
   repository = {
     id   = "repo-id"
     name = "my-repository"
@@ -96,7 +96,7 @@ module "workflow_protection" {
   source = "kewalaka/avm-res-githubrepository/github//modules/ruleset"
   # For local development: source = "./modules/ruleset"
 
-  name       = "workflow-file-protection"
+  name = "workflow-file-protection"
   repository = {
     id   = "repo-id"
     name = "my-repository"

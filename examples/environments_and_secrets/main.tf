@@ -1,5 +1,6 @@
 terraform {
   required_version = "~> 1.9"
+
   required_providers {
     github = {
       source  = "integrations/github"
@@ -38,9 +39,7 @@ module "github_repository" {
 
   name               = random_pet.repo_name.id
   organization_name  = "kewalaka-org"
-  visibility         = "public"
   archive_on_destroy = false
-
   environments = {
     "dev" = {
       name = "dev"
@@ -51,19 +50,17 @@ module "github_repository" {
       }
     }
   }
-
   secrets = {
     "deploy_secret" = {
       name      = "DEPLOY_SECRET"
       plaintext = "super_secret"
     }
   }
-
   variables = {
     "deploy_variable" = {
       name  = "DEPLOY_VARIABLE"
       value = "not_a_secret"
     }
   }
-
+  visibility = "public"
 }

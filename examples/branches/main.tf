@@ -1,5 +1,6 @@
 terraform {
   required_version = "~> 1.9"
+
   required_providers {
     github = {
       source  = "integrations/github"
@@ -32,19 +33,9 @@ resource "random_pet" "repo_name" {
 module "github_repository" {
   source = "../../"
 
-  name                 = random_pet.repo_name.id
-  organization_name    = "kewalaka-org"
-  visibility           = "public"
-  vulnerability_alerts = false
-  archive_on_destroy   = false
-
-  branches = {
-    "dev" = {
-      name          = "dev"
-      source_branch = "main"
-    }
-  }
-
+  name               = random_pet.repo_name.id
+  organization_name  = "kewalaka-org"
+  archive_on_destroy = false
   branch_protection_policies = {
     main = {
       pattern        = "main"
@@ -55,4 +46,12 @@ module "github_repository" {
       allows_force_pushes = true
     }
   }
+  branches = {
+    "dev" = {
+      name          = "dev"
+      source_branch = "main"
+    }
+  }
+  visibility           = "public"
+  vulnerability_alerts = false
 }

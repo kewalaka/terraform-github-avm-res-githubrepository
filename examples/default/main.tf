@@ -1,5 +1,6 @@
 terraform {
   required_version = "~> 1.9"
+
   required_providers {
     github = {
       source  = "integrations/github"
@@ -30,8 +31,7 @@ module "github_repository" {
 
   name                 = random_pet.repo_name.id
   organization_name    = var.github_organization_name
+  archive_on_destroy   = false
   visibility           = "private"
   vulnerability_alerts = false
-  archive_on_destroy   = false
-
 }

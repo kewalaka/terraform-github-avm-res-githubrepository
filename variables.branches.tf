@@ -1,15 +1,3 @@
-## Create a map of branches to be created
-variable "branches" {
-  type = map(object({
-    name          = string
-    source_branch = optional(string)
-    source_sha    = optional(string)
-  }))
-  description = "Map of branches to be created."
-  default     = {}
-  nullable    = false
-}
-
 # TODO consider something like this to abstract rules around how users + teams are specified.
 # Actor names must either begin with a "/" for users or the organization name followed by a "/" for teams.
 #push_allowances  = list(object({
@@ -49,7 +37,7 @@ variable "branch_protection_policies" {
       push_allowances  = optional(list(string))
     }))
   }))
-
+  default     = {}
   description = <<DESCRIPTION
 A map of branch protection policies to apply to the branches. The map key is the branch name.
 
@@ -81,7 +69,17 @@ A map of branch protection policies to apply to the branches. The map key is the
   - `apps` - (Optional) List of apps who can push to the branch.
 
 DESCRIPTION
+  nullable    = false
+}
 
-  default  = {}
-  nullable = false
+## Create a map of branches to be created
+variable "branches" {
+  type = map(object({
+    name          = string
+    source_branch = optional(string)
+    source_sha    = optional(string)
+  }))
+  default     = {}
+  description = "Map of branches to be created."
+  nullable    = false
 }

@@ -1,3 +1,19 @@
+variable "conditions" {
+  type = object({
+    ref_name = object({
+      include = list(string)
+      exclude = optional(list(string), [])
+    })
+  })
+  description = <<-EOT
+    Conditions for the ruleset.
+    - ref_name: Reference name patterns to include and exclude.
+      - include: List of ref name patterns to include (e.g., ["refs/heads/main", "refs/heads/release/*"]).
+      - exclude: List of ref name patterns to exclude (e.g., ["refs/heads/dev"]).
+  EOT
+  nullable    = false
+}
+
 variable "name" {
   type        = string
   description = "The name of the ruleset."
@@ -24,46 +40,30 @@ variable "target" {
   }
 }
 
-variable "enforcement" {
-  type        = string
-  description = "The enforcement level of the ruleset. Possible values are: disabled, active, evaluate."
-  default     = "active"
-
-  validation {
-    condition     = contains(["disabled", "active", "evaluate"], var.enforcement)
-    error_message = "Enforcement must be one of: disabled, active, evaluate."
-  }
-}
-
 variable "bypass_actors" {
   type = list(object({
     actor_id    = number
     actor_type  = string
     bypass_mode = optional(string, "always")
   }))
+  default     = []
   description = <<-EOT
     List of actors that can bypass the ruleset.
     - actor_id: The ID of the actor (user, team, or app).
     - actor_type: The type of actor. Possible values: RepositoryRole, Team, Integration, OrganizationAdmin.
     - bypass_mode: The bypass mode. Possible values: always, pull_request. Defaults to always.
   EOT
-  default     = []
 }
 
-variable "conditions" {
-  type = object({
-    ref_name = object({
-      include = list(string)
-      exclude = optional(list(string), [])
-    })
-  })
-  description = <<-EOT
-    Conditions for the ruleset.
-    - ref_name: Reference name patterns to include and exclude.
-      - include: List of ref name patterns to include (e.g., ["refs/heads/main", "refs/heads/release/*"]).
-      - exclude: List of ref name patterns to exclude (e.g., ["refs/heads/dev"]).
-  EOT
-  nullable    = false
+variable "enforcement" {
+  type        = string
+  default     = "active"
+  description = "The enforcement level of the ruleset. Possible values are: disabled, active, evaluate."
+
+  validation {
+    condition     = contains(["disabled", "active", "evaluate"], var.enforcement)
+    error_message = "Enforcement must be one of: disabled, active, evaluate."
+  }
 }
 
 variable "rules" {
@@ -109,13 +109,13 @@ variable "rules" {
     }))
 
     # Branch rules
-    creation                 = optional(bool)
-    update                   = optional(bool)
-    deletion                 = optional(bool)
-    required_linear_history  = optional(bool)
-    required_signatures      = optional(bool)
-    non_fast_forward         = optional(bool)
-    required_deployments     = optional(object({
+    creation                = optional(bool)
+    update                  = optional(bool)
+    deletion                = optional(bool)
+    required_linear_history = optional(bool)
+    required_signatures     = optional(bool)
+    non_fast_forward        = optional(bool)
+    required_deployments = optional(object({
       required_deployment_environments = list(string)
     }))
 
@@ -130,12 +130,13 @@ variable "rules" {
     # Workflow rules
     required_workflows = optional(object({
       required_workflow = list(object({
-        path         = string
+        path          = string
         repository_id = optional(number)
-        ref          = optional(string)
+        ref           = optional(string)
       }))
     }))
   })
+  default     = {}
   description = <<-EOT
     Rules to apply in the ruleset. All rules are optional.
     
@@ -184,5 +185,4 @@ variable "rules" {
         - repository_id: Optional repository ID.
         - ref: Optional ref (branch/tag).
   EOT
-  default     = {}
 }

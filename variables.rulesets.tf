@@ -88,7 +88,7 @@ variable "rulesets" {
       }))
     }), {})
   }))
-
+  default     = {}
   description = <<-DESCRIPTION
     A map of rulesets to apply to the repository. The map key is a unique identifier for the ruleset.
 
@@ -122,7 +122,5 @@ variable "rulesets" {
 
     See the ruleset submodule documentation for detailed information about each rule.
   DESCRIPTION
-
-  default  = {}
-  nullable = false
+  nullable    = false
 }

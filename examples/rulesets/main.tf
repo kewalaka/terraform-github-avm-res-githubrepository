@@ -1,5 +1,6 @@
 terraform {
   required_version = "~> 1.9"
+
   required_providers {
     github = {
       source  = "integrations/github"
@@ -29,12 +30,9 @@ resource "random_pet" "repo_name" {
 module "github_repository" {
   source = "../../"
 
-  name                 = random_pet.repo_name.id
-  organization_name    = var.github_organization_name
-  visibility           = "public"
-  vulnerability_alerts = false
-  archive_on_destroy   = false
-
+  name               = random_pet.repo_name.id
+  organization_name  = var.github_organization_name
+  archive_on_destroy = false
   # Create a dev branch for testing
   branches = {
     "dev" = {
@@ -46,7 +44,6 @@ module "github_repository" {
       source_branch = "main"
     }
   }
-
   # Define rulesets for branch, tag, and push protection
   rulesets = {
     # Main branch protection
@@ -166,21 +163,9 @@ module "github_repository" {
       }
     }
   }
+  visibility           = "public"
+  vulnerability_alerts = false
 }
 
-# Output the created rulesets
-output "repository_name" {
-  description = "The name of the created repository"
-  value       = module.github_repository.repository.name
-}
 
-output "repository_url" {
-  description = "The URL of the created repository"
-  value       = module.github_repository.repository.html_url
-}
 
-output "rulesets" {
-  description = "The rulesets applied to the repository"
-  value       = module.github_repository.rulesets
-  sensitive   = false
-}
