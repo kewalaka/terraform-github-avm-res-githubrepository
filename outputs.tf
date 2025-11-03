@@ -40,5 +40,12 @@ output "resource_id" {
 
 output "rulesets" {
   description = "Rulesets applied to the GitHub repository."
-  value       = module.rulesets
+  value = {
+    for name, ruleset in module.rulesets : name => {
+      id         = ruleset.id
+      name       = ruleset.name
+      node_id    = ruleset.node_id
+      ruleset_id = ruleset.ruleset_id
+    }
+  }
 }

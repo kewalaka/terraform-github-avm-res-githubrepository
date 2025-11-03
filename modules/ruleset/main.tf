@@ -147,11 +147,6 @@ resource "github_repository_ruleset" "this" {
     required_linear_history = var.rules.required_linear_history
     required_signatures     = var.rules.required_signatures
     non_fast_forward        = var.rules.non_fast_forward
-    update_allows_fetch_and_merge = (
-      var.rules.update == null
-      ? null
-      : (var.rules.non_fast_forward != null ? !var.rules.non_fast_forward : true)
-    )
 
     dynamic "required_deployments" {
       for_each = var.rules.required_deployments != null ? [var.rules.required_deployments] : []
