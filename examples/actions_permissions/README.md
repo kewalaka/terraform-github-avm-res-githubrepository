@@ -39,7 +39,7 @@ actions_permissions = {
   allowed_actions_config = {
     github_owned_allowed = true  # Allow GitHub's official actions
     verified_allowed     = false # Don't allow all verified creators
-    patterns_allowed     = [
+    patterns_allowed = [
       "docker/*",                    # Allow all Docker actions
       "azure/webapps-deploy@v2",     # Specific Azure action
       "hashicorp/setup-terraform@v3" # Specific Terraform action

@@ -19,7 +19,7 @@ Configuration for GitHub Actions repository permissions. Controls which actions 
   - `patterns_allowed` - List of string-matching patterns to allow specific action(s). Wildcards, tags, and SHAs are allowed. For example, `monalisa/octocat@*`, `monalisa/octocat@v2`, `monalisa/*`.
   - `verified_allowed` - (Optional) Whether actions from GitHub Marketplace verified creators are allowed.
 
-**Note**: The GitHub Terraform provider does not currently support configuring `default_workflow_permissions` (read/write token scopes) 
+**Note**: The GitHub Terraform provider does not currently support configuring `default_workflow_permissions` (read/write token scopes)
 or `require_approval_for_fork_pull_request` at the repository level. These must be configured through the GitHub UI or at the organization level.
 
 ## Supply Chain Security

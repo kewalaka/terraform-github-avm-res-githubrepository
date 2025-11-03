@@ -27,7 +27,7 @@ module "actions_permissions" {
   repository = {
     id = "my-repo"
   }
-  
+
   allowed_actions = "local_only"
   enabled         = true
 }
@@ -41,14 +41,14 @@ module "actions_permissions" {
   repository = {
     id = "my-repo"
   }
-  
+
   allowed_actions = "selected"
   enabled         = true
-  
+
   allowed_actions_config = {
     github_owned_allowed = true
     verified_allowed     = false
-    patterns_allowed     = [
+    patterns_allowed = [
       "docker/*",
       "azure/webapps-deploy@v2"
     ]
