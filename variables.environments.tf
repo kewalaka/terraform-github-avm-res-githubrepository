@@ -15,6 +15,7 @@ variable "environments" {
     deployment_policy_branch_pattern = optional(string)
     deployment_policy_tag_pattern    = optional(string)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of environments to be created along with their associated github action secrets and variables.
 
@@ -27,7 +28,8 @@ Map of environments to be created along with their associated github action secr
 - deployment_policy_tag_pattern: Tag pattern for the deployment policy
 
 DESCRIPTION
-  default     = {}
+  nullable    = false
+
   validation {
     condition = alltrue([
       for environment in var.environments : (
@@ -38,5 +40,4 @@ DESCRIPTION
     ])
     error_message = "Each environment may have up to 6 users and teams as reviewers."
   }
-  nullable = false
 }

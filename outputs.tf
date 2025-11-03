@@ -34,6 +34,18 @@ output "repository" {
 }
 
 output "resource_id" {
-  description = "The ID of the repository."
+  description = "The resource ID of the GitHub repository."
   value       = github_repository.this.id
+}
+
+output "rulesets" {
+  description = "Rulesets applied to the GitHub repository."
+  value = {
+    for name, ruleset in module.rulesets : name => {
+      id         = ruleset.id
+      name       = ruleset.name
+      node_id    = ruleset.node_id
+      ruleset_id = ruleset.ruleset_id
+    }
+  }
 }

@@ -7,6 +7,7 @@ variable "secrets" {
     is_dependabot_secret = optional(bool, false)
     is_codespaces_secret = optional(bool, false)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of github action secrets to be created.
 
@@ -18,8 +19,8 @@ Map of github action secrets to be created.
 - `is_codespaces_secret` - If set to true, the secret will be created at the repository level and will be used by codespaces.
 
 DESCRIPTION
-  default     = {}
   nullable    = false
+
   validation {
     condition = alltrue([
       for secret in var.secrets : (
@@ -52,6 +53,7 @@ variable "variables" {
     value       = string
     environment = optional(string)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of github action variables to be created.
 
@@ -60,7 +62,5 @@ Map of github action variables to be created.
 - `environment` - The environment to create the variable in. If not set, the variable will be created at the repository level.
 
 DESCRIPTION
-
-  default  = {}
-  nullable = false
+  nullable    = false
 }

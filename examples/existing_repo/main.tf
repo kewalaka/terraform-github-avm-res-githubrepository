@@ -1,9 +1,10 @@
 terraform {
   required_version = "~> 1.9"
+
   required_providers {
     github = {
       source  = "integrations/github"
-      version = "~> 6.5.0"
+      version = "~> 6.7.0"
     }
     # modtm = {
     #   source  = "azure/modtm"
@@ -51,14 +52,12 @@ locals {
 }
 
 module "avm_res_githubrepository_secret" {
-  source = "../..//modules/secret"
-
+  source   = "../..//modules/secret"
   for_each = local.secrets
 
-  repository = { id = github_repository.this.id }
-
   name            = each.value.name
-  plaintext_value = try(each.value.plaintext_value, null)
+  repository      = { id = github_repository.this.id }
   encrypted_value = try(each.value.encrypted_value, null)
   environment     = try(each.value.environmnet, null)
+  plaintext_value = try(each.value.plaintext_value, null)
 }
