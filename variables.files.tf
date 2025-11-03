@@ -11,6 +11,7 @@ variable "files" {
     autocreate_branch_source_branch = optional(string, "main")
     autocreate_branch_source_sha    = optional(string, null)
   }))
+  default     = {}
   description = <<DESCRIPTION
 Map of files to be managed in the GitHub repository.
 
@@ -25,5 +26,4 @@ Map of files to be managed in the GitHub repository.
 - `autocreate_branch_source_branch` - (Optional) The branch name to start from, if `autocreate_branch` is set. Defaults to `main`.
 - `autocreate_branch_source_sha` - (Optional) The commit hash to start from, if `autocreate_branch` is set. Defaults to the tip of `autocreate_branch_source_branch`. If provided, `autocreate_branch_source_branch` is ignored.
 DESCRIPTION
-  default     = {}
 }

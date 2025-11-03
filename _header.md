@@ -11,6 +11,7 @@ The intention is to separately develop another module for GitHub Organizations a
 - Create and manage GitHub repositories, branches & environments
 - **Manage existing repositories** - Configure subcomponents (branches, environments, secrets, etc.) on pre-existing repositories
 - Apply classic branches protection
+- Apply repository rulesets (branch, tag, and push protection)
 - Manage variables & secrets at the repository and environment scope.
 - Enable or disable features such as issues, discussions, wiki, etc.
 
@@ -45,6 +46,7 @@ module "existing_repo" {
 |--------------|-------------------|------------------|
 | Branches | No | Yes |
 | Branch Protection | Yes | No |
+| Rulesets | No | Yes |
 | Environments | No | Yes |
 | Secrets (Actions/Dependabot/Codespaces) | No | Yes |
 | Variables (Actions) | No | Yes |
@@ -54,11 +56,21 @@ module "existing_repo" {
 **Note on Branch Protection:**
 - When `use_existing_repository = true` and `repository_node_id` is not provided, branch protection will be skipped with a warning output.
 - To enable branch protection on existing repositories, provide the `repository_node_id` (obtainable via GitHub API or GraphQL).
-- Alternatively, consider using rulesets (when implemented) for equivalent protection without requiring the node ID.
+- Alternatively, use rulesets for equivalent protection without requiring the node ID.
+
+## Migration from Branch Protection to Rulesets
+
+Rulesets are the newer way to protect branches and tags, offering more flexibility than classic branch protection policies. Key advantages include:
+
+- **Target flexibility**: Can protect branches, tags, or apply to push events
+- **Better pattern matching**: More powerful include/exclude patterns with wildcards
+- **Enforcement modes**: `active`, `evaluate` (for testing), and `disabled`
+- **Bypass controls**: Granular control with bypass actors and modes
+
+For new implementations, use rulesets instead of branch protection. See the `examples/rulesets` directory and the `modules/ruleset` submodule documentation for detailed usage.
 
 TODO:
 
-- Rulesets
 - Testing for adding team permissions
 - Testing for adding files & using templates
 - OIDC subject mapping
