@@ -8,7 +8,7 @@ terraform {
     }
     github = {
       source  = "integrations/github"
-      version = "~> 6.5"
+      version = "~> 6.7"
     }
     modtm = {
       source  = "azure/modtm"

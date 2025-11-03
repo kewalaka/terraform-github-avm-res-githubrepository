@@ -11,7 +11,7 @@ terraform {
   required_providers {
     github = {
       source  = "integrations/github"
-      version = "~> 6.5.0"
+      version = "~> 6.7.0"
     }
     # modtm = {
     #   source  = "azure/modtm"
@@ -71,7 +71,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
 
-- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5.0)
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.7.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 

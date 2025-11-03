@@ -56,7 +56,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.5)
+- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.7)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
