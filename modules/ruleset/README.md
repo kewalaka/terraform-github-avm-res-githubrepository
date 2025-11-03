@@ -250,7 +250,7 @@ Default: `"active"`
 
 ### <a name="input_rules"></a> [rules](#input\_rules)
 
-Description: Rules to apply in the ruleset. All rules are optional.  
+Description: Rules to apply in the ruleset. All rules are optional.
 
 Pull Request Rules:
 - pull\_request: Require pull request before merging.
@@ -258,7 +258,7 @@ Pull Request Rules:
   - require\_code\_owner\_review: Require code owner review.
   - require\_last\_push\_approval: Require approval of the most recent push.
   - required\_approving\_review\_count: Number of required approving reviews.
-  - required\_review\_thread\_resolution: Require all conversations to be resolved.  
+  - required\_review\_thread\_resolution: Require all conversations to be resolved.
 
 Status and Scanning Rules:
 - required\_status\_checks: Require status checks to pass.
@@ -271,7 +271,7 @@ Status and Scanning Rules:
   - required\_code\_scanning\_tool: Set of scanning tools to enforce.
     - tool: Name of the scanning tool.
     - alerts\_threshold: Severity level that blocks updates.
-    - security\_alerts\_threshold: Security severity level that blocks updates.  
+    - security\_alerts\_threshold: Security severity level that blocks updates.
 
 Commit Rules:
 - committer\_email\_pattern: Require committer email to match pattern.
@@ -281,7 +281,7 @@ Commit Rules:
   - operator: The operator (starts\_with, ends\_with, contains, regex).
   - pattern: The pattern to match.
   - name: Optional name for the rule.
-  - negate: Whether to negate the match.  
+  - negate: Whether to negate the match.
 
 Branch Rules:
 - branch\_name\_pattern: Require branch names to match a pattern.
@@ -296,7 +296,7 @@ Branch Rules:
 - file\_extension\_restriction: Restrict pushes by file extension.
 - file\_path\_restriction: Restrict pushes by file path.
 - max\_file\_size: Restrict pushes by maximum file size.
-- merge\_queue: Require merges to flow through the merge queue.  
+- merge\_queue: Require merges to flow through the merge queue.
 
 Tag Rules:
 - tag\_name\_pattern: Require tag name to match pattern (similar structure to commit patterns).
