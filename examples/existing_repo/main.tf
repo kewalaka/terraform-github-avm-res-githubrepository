@@ -40,11 +40,11 @@ resource "github_repository" "external" {
 module "existing_repo_without_node_id" {
   source = "../../"
 
-  name                    = github_repository.external.name
-  organization_name       = var.github_organization_name
-  use_existing_repository = true
-  enable_telemetry        = false
-
+  name              = github_repository.external.name
+  organization_name = var.github_organization_name
+  # Branch protection will be skipped (check module output for warning)
+  branch_protection_policies = {}
+  enable_telemetry           = false
   # These subcomponents will be configured on the existing repository
   environments = {
     production = {
@@ -55,7 +55,6 @@ module "existing_repo_without_node_id" {
       }
     }
   }
-
   secrets = {
     repo_secret = {
       name            = "REPO_SECRET_1"
@@ -67,30 +66,23 @@ module "existing_repo_without_node_id" {
       environment     = "production"
     }
   }
-
+  use_existing_repository = true
   variables = {
     repo_var = {
       name  = "REPO_VAR_1"
       value = "repo_value"
     }
   }
-
-  # Branch protection will be skipped (check module output for warning)
-  branch_protection_policies = {}
 }
 
 # Example 2: Using the module with an existing repository AND node_id for branch protection
 module "existing_repo_with_node_id" {
   source = "../../"
 
-  name                    = github_repository.external.name
-  organization_name       = var.github_organization_name
-  use_existing_repository = true
-  repository_node_id      = github_repository.external.node_id
-  enable_telemetry        = false
-
+  name              = github_repository.external.name
+  organization_name = var.github_organization_name
   # Branch protection can be configured when repository_node_id is provided
-  branch_protection_policies = {
+  branch_protection_policies = var.existing_repository_node_id == null ? {} : {
     main_protection = {
       pattern        = "main"
       enforce_admins = true
@@ -100,20 +92,10 @@ module "existing_repo_with_node_id" {
       }
     }
   }
+  enable_telemetry        = false
+  repository_node_id      = var.existing_repository_node_id
+  use_existing_repository = true
 }
 
-# Output warnings if branch protection is skipped
-output "branch_protection_warning_example1" {
-  description = "Warning from example 1 (without node_id)"
-  value       = module.existing_repo_without_node_id.branch_protection_warning
-}
 
-output "branch_protection_warning_example2" {
-  description = "Warning from example 2 (with node_id)"
-  value       = module.existing_repo_with_node_id.branch_protection_warning
-}
 
-output "repository_name" {
-  description = "The name of the managed repository"
-  value       = module.existing_repo_without_node_id.repository_name
-}

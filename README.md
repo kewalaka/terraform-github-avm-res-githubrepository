@@ -26,12 +26,15 @@ To use an existing repository:
 ```hcl
 module "existing_repo" {
   source = "path/to/module"
+
   name                    = "my-existing-repo"
   organization_name       = "my-org"
   use_existing_repository = true
+
   # Optional: provide repository_node_id for branch protection
   # If not provided, branch protection will be skipped
   repository_node_id = "R_kgDOHexample"
+
   # Configure subcomponents
   environments = { ... }
   secrets = { ... }

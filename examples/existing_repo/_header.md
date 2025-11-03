@@ -12,9 +12,7 @@ The example shows two patterns:
 
 ## How to Obtain repository_node_id
 
-If you want to enable branch protection on an existing repository, you'll need to obtain its node ID. You can get this via:
-
-**Using GitHub CLI:**
+If you want to enable branch protection on an existing repository, you'll need to obtain its node ID ahead of time. A simple option is to use the GitHub CLI:
 ```bash
 gh api graphql -f query='
   query($owner: String!, $name: String!) {
@@ -25,15 +23,7 @@ gh api graphql -f query='
 ' -f owner=YOUR_ORG -f name=YOUR_REPO
 ```
 
-**Using the Terraform GitHub provider:**
-Create a data source in your Terraform code (outside this module):
-```hcl
-data "github_repository" "existing" {
-  name = "my-existing-repo"
-}
-
-# Use: data.github_repository.existing.node_id
-```
+Record the returned `id` and pass it to the module via `repository_node_id` (for example by setting `TF_VAR_existing_repository_node_id`).
 
 ## GitHub App Permissions Required
 

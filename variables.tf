@@ -51,6 +51,14 @@ Options for configuring security and analysis features.
 DESCRIPTION
 }
 
+variable "repository_node_id" {
+  type        = string
+  default     = null
+  description = <<DESCRIPTION
+The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
+DESCRIPTION
+}
+
 variable "template" {
   type = object({
     owner                = optional(string)
@@ -68,15 +76,6 @@ The template repository to use when creating the repository.
 DESCRIPTION
 }
 
-variable "use_template_repository" {
-  type        = bool
-  default     = false
-  description = <<DESCRIPTION
-Whether to use the template repository.
-DESCRIPTION
-  nullable    = false
-}
-
 variable "use_existing_repository" {
   type        = bool
   default     = false
@@ -86,10 +85,11 @@ DESCRIPTION
   nullable    = false
 }
 
-variable "repository_node_id" {
-  type        = string
-  default     = null
+variable "use_template_repository" {
+  type        = bool
+  default     = false
   description = <<DESCRIPTION
-The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
+Whether to use the template repository.
 DESCRIPTION
+  nullable    = false
 }
