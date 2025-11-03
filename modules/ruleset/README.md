@@ -114,10 +114,10 @@ module "workflow_protection" {
   }
 
   rules = {
-    required_workflows = {
-      required_workflow = [
+    required_status_checks = {
+      required_check = [
         {
-          path = ".github/workflows/ci.yml"
+          context = "ci/tests"
         }
       ]
     }
@@ -143,7 +143,8 @@ Rulesets provide more flexibility than classic branch protection policies and ar
 - **Target flexibility**: Rulesets can target branches, tags, or push events
 - **Pattern matching**: More powerful include/exclude patterns
 - **Bypass actors**: More granular control with bypass modes
-- **Rule composition**: More comprehensive rule set including workflows and patterns
+- **Rule composition**: More comprehensive rule set with status checks, code
+  ownership, and commit policies
 - **Enforcement modes**: Support for evaluate mode to test rules before enforcement
 
 When migrating from branch protection to rulesets:
@@ -259,12 +260,18 @@ Pull Request Rules:
   - required\_approving\_review\_count: Number of required approving reviews.
   - required\_review\_thread\_resolution: Require all conversations to be resolved.  
 
-Status Check Rules:
+Status and Scanning Rules:
 - required\_status\_checks: Require status checks to pass.
   - required\_check: List of required status checks.
     - context: The status check context name.
     - integration\_id: Optional integration ID.
-  - strict\_required\_status\_checks\_policy: Require branches to be up to date.  
+  - do\_not\_enforce\_on\_create: Allow branch creation when checks are pending.
+  - strict\_required\_status\_checks\_policy: Require branches to be up to date.
+- required\_code\_scanning: Require code scanning tools to pass.
+  - required\_code\_scanning\_tool: Set of scanning tools to enforce.
+    - tool: Name of the scanning tool.
+    - alerts\_threshold: Severity level that blocks updates.
+    - security\_alerts\_threshold: Security severity level that blocks updates.  
 
 Commit Rules:
 - committer\_email\_pattern: Require committer email to match pattern.
@@ -277,6 +284,7 @@ Commit Rules:
   - negate: Whether to negate the match.  
 
 Branch Rules:
+- branch\_name\_pattern: Require branch names to match a pattern.
 - creation: Block creation of matching refs.
 - update: Block update of matching refs (set to true with update\_allows\_fetch\_and\_merge = true for non-fast-forward rule).
 - deletion: Block deletion of matching refs.
@@ -284,17 +292,14 @@ Branch Rules:
 - required\_signatures: Require signed commits.
 - non\_fast\_forward: Block non-fast-forward pushes.
 - required\_deployments: Require deployments to succeed.
-  - required\_deployment\_environments: List of required deployment environments.  
+  - required\_deployment\_environments: List of required deployment environments.
+- file\_extension\_restriction: Restrict pushes by file extension.
+- file\_path\_restriction: Restrict pushes by file path.
+- max\_file\_size: Restrict pushes by maximum file size.
+- merge\_queue: Require merges to flow through the merge queue.  
 
 Tag Rules:
-- tag\_name\_pattern: Require tag name to match pattern (similar structure to commit patterns).  
-
-Workflow Rules:
-- required\_workflows: Require workflows to pass.
-  - required\_workflow: List of required workflows.
-    - path: Path to the workflow file.
-    - repository\_id: Optional repository ID.
-    - ref: Optional ref (branch/tag).
+- tag\_name\_pattern: Require tag name to match pattern (similar structure to commit patterns).
 
 Type:
 
@@ -315,7 +320,16 @@ object({
         context        = string
         integration_id = optional(number)
       }))
+      do_not_enforce_on_create             = optional(bool, false)
       strict_required_status_checks_policy = optional(bool, false)
+    }))
+
+    required_code_scanning = optional(object({
+      required_code_scanning_tool = set(object({
+        tool                      = string
+        alerts_threshold          = string
+        security_alerts_threshold = string
+      }))
     }))
 
     # Commit rules
@@ -340,6 +354,13 @@ object({
       negate   = optional(bool, false)
     }))
 
+    branch_name_pattern = optional(object({
+      operator = string
+      pattern  = string
+      name     = optional(string)
+      negate   = optional(bool, false)
+    }))
+
     # Branch rules
     creation                = optional(bool)
     update                  = optional(bool)
@@ -351,6 +372,28 @@ object({
       required_deployment_environments = list(string)
     }))
 
+    file_extension_restriction = optional(object({
+      restricted_file_extensions = set(string)
+    }))
+
+    file_path_restriction = optional(object({
+      restricted_file_paths = list(string)
+    }))
+
+    max_file_size = optional(object({
+      max_file_size = number
+    }))
+
+    merge_queue = optional(object({
+      check_response_timeout_minutes    = optional(number)
+      grouping_strategy                 = optional(string)
+      max_entries_to_build              = optional(number)
+      max_entries_to_merge              = optional(number)
+      merge_method                      = optional(string)
+      min_entries_to_merge              = optional(number)
+      min_entries_to_merge_wait_minutes = optional(number)
+    }))
+
     # Tag rules
     tag_name_pattern = optional(object({
       operator = string
@@ -359,14 +402,6 @@ object({
       negate   = optional(bool, false)
     }))
 
-    # Workflow rules
-    required_workflows = optional(object({
-      required_workflow = list(object({
-        path          = string
-        repository_id = optional(number)
-        ref           = optional(string)
-      }))
-    }))
   })
 ```
 

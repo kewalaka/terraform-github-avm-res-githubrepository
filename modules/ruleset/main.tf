@@ -44,7 +44,22 @@ resource "github_repository_ruleset" "this" {
             integration_id = required_check.value.integration_id
           }
         }
-        strict_required_status_checks_policy = required_status_checks.value.strict_required_status_checks_policy
+        do_not_enforce_on_create             = try(required_status_checks.value.do_not_enforce_on_create, null)
+        strict_required_status_checks_policy = try(required_status_checks.value.strict_required_status_checks_policy, null)
+      }
+    }
+
+    dynamic "required_code_scanning" {
+      for_each = var.rules.required_code_scanning != null ? [var.rules.required_code_scanning] : []
+      content {
+        dynamic "required_code_scanning_tool" {
+          for_each = try(required_code_scanning.value.required_code_scanning_tool, [])
+          content {
+            tool                      = required_code_scanning_tool.value.tool
+            alerts_threshold          = required_code_scanning_tool.value.alerts_threshold
+            security_alerts_threshold = required_code_scanning_tool.value.security_alerts_threshold
+          }
+        }
       }
     }
 
@@ -79,6 +94,50 @@ resource "github_repository_ruleset" "this" {
       }
     }
 
+    dynamic "branch_name_pattern" {
+      for_each = var.rules.branch_name_pattern != null ? [var.rules.branch_name_pattern] : []
+      content {
+        operator = branch_name_pattern.value.operator
+        pattern  = branch_name_pattern.value.pattern
+        name     = try(branch_name_pattern.value.name, null)
+        negate   = try(branch_name_pattern.value.negate, null)
+      }
+    }
+
+    dynamic "file_path_restriction" {
+      for_each = var.rules.file_path_restriction != null ? [var.rules.file_path_restriction] : []
+      content {
+        restricted_file_paths = file_path_restriction.value.restricted_file_paths
+      }
+    }
+
+    dynamic "file_extension_restriction" {
+      for_each = var.rules.file_extension_restriction != null ? [var.rules.file_extension_restriction] : []
+      content {
+        restricted_file_extensions = file_extension_restriction.value.restricted_file_extensions
+      }
+    }
+
+    dynamic "max_file_size" {
+      for_each = var.rules.max_file_size != null ? [var.rules.max_file_size] : []
+      content {
+        max_file_size = max_file_size.value.max_file_size
+      }
+    }
+
+    dynamic "merge_queue" {
+      for_each = var.rules.merge_queue != null ? [var.rules.merge_queue] : []
+      content {
+        check_response_timeout_minutes    = try(merge_queue.value.check_response_timeout_minutes, null)
+        grouping_strategy                 = try(merge_queue.value.grouping_strategy, null)
+        max_entries_to_build              = try(merge_queue.value.max_entries_to_build, null)
+        max_entries_to_merge              = try(merge_queue.value.max_entries_to_merge, null)
+        merge_method                      = try(merge_queue.value.merge_method, null)
+        min_entries_to_merge              = try(merge_queue.value.min_entries_to_merge, null)
+        min_entries_to_merge_wait_minutes = try(merge_queue.value.min_entries_to_merge_wait_minutes, null)
+      }
+    }
+
     # Branch rules
     # The GitHub provider exposes these as optional boolean attributes on the rules block.
     # Setting them directly avoids unsupported dynamic blocks reported in Terraform plan output.
@@ -107,24 +166,10 @@ resource "github_repository_ruleset" "this" {
       content {
         operator = tag_name_pattern.value.operator
         pattern  = tag_name_pattern.value.pattern
-        name     = tag_name_pattern.value.name
-        negate   = tag_name_pattern.value.negate
+        name     = try(tag_name_pattern.value.name, null)
+        negate   = try(tag_name_pattern.value.negate, null)
       }
     }
 
-    # Workflow rules
-    dynamic "required_workflows" {
-      for_each = length(try(var.rules.required_workflows.required_workflow, [])) > 0 ? [var.rules.required_workflows] : []
-      content {
-        dynamic "required_workflow" {
-          for_each = try(required_workflows.value.required_workflow, [])
-          content {
-            path          = required_workflow.value.path
-            repository_id = required_workflow.value.repository_id
-            ref           = required_workflow.value.ref
-          }
-        }
-      }
-    }
   }
 }

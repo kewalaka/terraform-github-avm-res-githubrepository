@@ -26,6 +26,23 @@ PORCH_NO_TUI=1 ./avm pr-check
   because the check fails when uncommitted changes exist.
 - Double-check module version pins match repository guidelines.
 
+## Schema Tips
+
+- Query the provider schema before adding or removing attributes so updates stay
+  aligned with upstream support.
+
+```bash
+terraform providers schema -json \
+  | jq '
+      .provider_schemas["registry.terraform.io/integrations/github"]
+      .resource_schemas."github_repository_ruleset".block
+    '
+```
+
+- Inspect nested blocks by extending the jq path, for example append
+  `.block_types.rules.block.block_types.required_status_checks` to review the
+  status check rule contract.
+
 ## Integration Limits
 
 - The agent file currently supports metadata (name, description) and markdown

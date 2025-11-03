@@ -83,7 +83,16 @@ variable "rules" {
         context        = string
         integration_id = optional(number)
       }))
+      do_not_enforce_on_create             = optional(bool, false)
       strict_required_status_checks_policy = optional(bool, false)
+    }))
+
+    required_code_scanning = optional(object({
+      required_code_scanning_tool = set(object({
+        tool                      = string
+        alerts_threshold          = string
+        security_alerts_threshold = string
+      }))
     }))
 
     # Commit rules
@@ -108,6 +117,13 @@ variable "rules" {
       negate   = optional(bool, false)
     }))
 
+    branch_name_pattern = optional(object({
+      operator = string
+      pattern  = string
+      name     = optional(string)
+      negate   = optional(bool, false)
+    }))
+
     # Branch rules
     creation                = optional(bool)
     update                  = optional(bool)
@@ -119,6 +135,28 @@ variable "rules" {
       required_deployment_environments = list(string)
     }))
 
+    file_extension_restriction = optional(object({
+      restricted_file_extensions = set(string)
+    }))
+
+    file_path_restriction = optional(object({
+      restricted_file_paths = list(string)
+    }))
+
+    max_file_size = optional(object({
+      max_file_size = number
+    }))
+
+    merge_queue = optional(object({
+      check_response_timeout_minutes    = optional(number)
+      grouping_strategy                 = optional(string)
+      max_entries_to_build              = optional(number)
+      max_entries_to_merge              = optional(number)
+      merge_method                      = optional(string)
+      min_entries_to_merge              = optional(number)
+      min_entries_to_merge_wait_minutes = optional(number)
+    }))
+
     # Tag rules
     tag_name_pattern = optional(object({
       operator = string
@@ -127,19 +165,11 @@ variable "rules" {
       negate   = optional(bool, false)
     }))
 
-    # Workflow rules
-    required_workflows = optional(object({
-      required_workflow = list(object({
-        path          = string
-        repository_id = optional(number)
-        ref           = optional(string)
-      }))
-    }))
   })
   default     = {}
   description = <<-EOT
     Rules to apply in the ruleset. All rules are optional.
-    
+
     Pull Request Rules:
     - pull_request: Require pull request before merging.
       - dismiss_stale_reviews_on_push: Dismiss stale reviews on push.
@@ -147,14 +177,20 @@ variable "rules" {
       - require_last_push_approval: Require approval of the most recent push.
       - required_approving_review_count: Number of required approving reviews.
       - required_review_thread_resolution: Require all conversations to be resolved.
-    
-    Status Check Rules:
+
+    Status and Scanning Rules:
     - required_status_checks: Require status checks to pass.
       - required_check: List of required status checks.
         - context: The status check context name.
         - integration_id: Optional integration ID.
+      - do_not_enforce_on_create: Allow branch creation when checks are pending.
       - strict_required_status_checks_policy: Require branches to be up to date.
-    
+    - required_code_scanning: Require code scanning tools to pass.
+      - required_code_scanning_tool: Set of scanning tools to enforce.
+        - tool: Name of the scanning tool.
+        - alerts_threshold: Severity level that blocks updates.
+        - security_alerts_threshold: Security severity level that blocks updates.
+
     Commit Rules:
     - committer_email_pattern: Require committer email to match pattern.
     - commit_message_pattern: Require commit message to match pattern.
@@ -164,8 +200,9 @@ variable "rules" {
       - pattern: The pattern to match.
       - name: Optional name for the rule.
       - negate: Whether to negate the match.
-    
+
     Branch Rules:
+    - branch_name_pattern: Require branch names to match a pattern.
     - creation: Block creation of matching refs.
     - update: Block update of matching refs (set to true with update_allows_fetch_and_merge = true for non-fast-forward rule).
     - deletion: Block deletion of matching refs.
@@ -174,15 +211,12 @@ variable "rules" {
     - non_fast_forward: Block non-fast-forward pushes.
     - required_deployments: Require deployments to succeed.
       - required_deployment_environments: List of required deployment environments.
-    
+    - file_extension_restriction: Restrict pushes by file extension.
+    - file_path_restriction: Restrict pushes by file path.
+    - max_file_size: Restrict pushes by maximum file size.
+    - merge_queue: Require merges to flow through the merge queue.
+
     Tag Rules:
     - tag_name_pattern: Require tag name to match pattern (similar structure to commit patterns).
-    
-    Workflow Rules:
-    - required_workflows: Require workflows to pass.
-      - required_workflow: List of required workflows.
-        - path: Path to the workflow file.
-        - repository_id: Optional repository ID.
-        - ref: Optional ref (branch/tag).
   EOT
 }

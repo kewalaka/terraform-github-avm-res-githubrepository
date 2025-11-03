@@ -112,10 +112,10 @@ module "workflow_protection" {
   }
 
   rules = {
-    required_workflows = {
-      required_workflow = [
+    required_status_checks = {
+      required_check = [
         {
-          path = ".github/workflows/ci.yml"
+          context = "ci/tests"
         }
       ]
     }
@@ -141,7 +141,8 @@ Rulesets provide more flexibility than classic branch protection policies and ar
 - **Target flexibility**: Rulesets can target branches, tags, or push events
 - **Pattern matching**: More powerful include/exclude patterns
 - **Bypass actors**: More granular control with bypass modes
-- **Rule composition**: More comprehensive rule set including workflows and patterns
+- **Rule composition**: More comprehensive rule set with status checks, code
+  ownership, and commit policies
 - **Enforcement modes**: Support for evaluate mode to test rules before enforcement
 
 When migrating from branch protection to rulesets:

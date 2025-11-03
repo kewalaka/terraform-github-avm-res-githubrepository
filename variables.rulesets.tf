@@ -34,7 +34,16 @@ variable "rulesets" {
           context        = string
           integration_id = optional(number)
         }))
+        do_not_enforce_on_create             = optional(bool, false)
         strict_required_status_checks_policy = optional(bool, false)
+      }))
+
+      required_code_scanning = optional(object({
+        required_code_scanning_tool = set(object({
+          tool                      = string
+          alerts_threshold          = string
+          security_alerts_threshold = string
+        }))
       }))
 
       # Commit rules
@@ -59,6 +68,13 @@ variable "rulesets" {
         negate   = optional(bool, false)
       }))
 
+      branch_name_pattern = optional(object({
+        operator = string
+        pattern  = string
+        name     = optional(string)
+        negate   = optional(bool, false)
+      }))
+
       # Branch rules
       creation                = optional(bool)
       update                  = optional(bool)
@@ -70,6 +86,28 @@ variable "rulesets" {
         required_deployment_environments = list(string)
       }))
 
+      file_extension_restriction = optional(object({
+        restricted_file_extensions = set(string)
+      }))
+
+      file_path_restriction = optional(object({
+        restricted_file_paths = list(string)
+      }))
+
+      max_file_size = optional(object({
+        max_file_size = number
+      }))
+
+      merge_queue = optional(object({
+        check_response_timeout_minutes    = optional(number)
+        grouping_strategy                 = optional(string)
+        max_entries_to_build              = optional(number)
+        max_entries_to_merge              = optional(number)
+        merge_method                      = optional(string)
+        min_entries_to_merge              = optional(number)
+        min_entries_to_merge_wait_minutes = optional(number)
+      }))
+
       # Tag rules
       tag_name_pattern = optional(object({
         operator = string
@@ -78,14 +116,6 @@ variable "rulesets" {
         negate   = optional(bool, false)
       }))
 
-      # Workflow rules
-      required_workflows = optional(object({
-        required_workflow = list(object({
-          path          = string
-          repository_id = optional(number)
-          ref           = optional(string)
-        }))
-      }))
     }), {})
   }))
   default     = {}
@@ -107,9 +137,11 @@ variable "rulesets" {
     - `rules` - (Optional) Rules to apply in the ruleset.
       - `pull_request` - Require pull request before merging.
       - `required_status_checks` - Require status checks to pass.
+      - `required_code_scanning` - Require specific code scanning tooling.
       - `committer_email_pattern` - Require committer email to match pattern.
       - `commit_message_pattern` - Require commit message to match pattern.
       - `commit_author_email_pattern` - Require commit author email to match pattern.
+      - `branch_name_pattern` - Require branch names to match a pattern.
       - `creation` - Block creation of matching refs.
       - `update` - Block update of matching refs.
       - `deletion` - Block deletion of matching refs.
@@ -117,8 +149,11 @@ variable "rulesets" {
       - `required_signatures` - Require signed commits.
       - `non_fast_forward` - Block non-fast-forward pushes.
       - `required_deployments` - Require deployments to succeed.
+      - `file_extension_restriction` - Restrict commits based on file extensions.
+      - `file_path_restriction` - Restrict commits based on file paths.
+      - `max_file_size` - Restrict commits based on file sizes.
+      - `merge_queue` - Require merges to pass through the merge queue.
       - `tag_name_pattern` - Require tag name to match pattern.
-      - `required_workflows` - Require workflows to pass.
 
     See the ruleset submodule documentation for detailed information about each rule.
   DESCRIPTION
