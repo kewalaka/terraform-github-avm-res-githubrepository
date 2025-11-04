@@ -148,8 +148,9 @@ actions_oidc_subject_claim_customization_template = {
 DESCRIPTION
 
   validation {
-    condition = var.actions_oidc_subject_claim_customization_template == null ? true : (
-      var.actions_oidc_subject_claim_customization_template.use_default == false ||
+    condition = (
+      var.actions_oidc_subject_claim_customization_template == null ||
+      !var.actions_oidc_subject_claim_customization_template.use_default ||
       var.actions_oidc_subject_claim_customization_template.include_claim_keys == null
     )
     error_message = "When use_default is true, include_claim_keys must be null or omitted."

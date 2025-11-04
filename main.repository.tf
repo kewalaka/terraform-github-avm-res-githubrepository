@@ -118,9 +118,9 @@ resource "github_team_repository" "pull" {
 
 # GitHub Actions OIDC subject claim customization template
 resource "github_actions_repository_oidc_subject_claim_customization_template" "this" {
-  count = var.actions_oidc_subject_claim_customization_template != null ? 1 : 0
+  count = local.oidc_template != null ? 1 : 0
 
   repository         = local.repository_name
-  use_default        = var.actions_oidc_subject_claim_customization_template.use_default
-  include_claim_keys = var.actions_oidc_subject_claim_customization_template.use_default ? null : var.actions_oidc_subject_claim_customization_template.include_claim_keys
+  use_default        = local.oidc_template.use_default
+  include_claim_keys = local.oidc_template.use_default ? null : local.oidc_template.include_claim_keys
 }
