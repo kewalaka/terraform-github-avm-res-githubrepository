@@ -10,4 +10,6 @@ locals {
   # Repository identity - use existing repo name or created repo name
   repository_name    = var.use_existing_repository ? var.name : github_repository.this[0].name
   repository_node_id = var.use_existing_repository ? var.repository_node_id : github_repository.this[0].node_id
+  # Numeric repository ID required for runner groups
+  repository_repo_id = var.use_existing_repository ? var.repository_repo_id : github_repository.this[0].repo_id
 }

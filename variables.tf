@@ -59,6 +59,14 @@ The node ID of an existing repository. Required for branch protection when `use_
 DESCRIPTION
 }
 
+variable "repository_repo_id" {
+  type        = number
+  default     = null
+  description = <<DESCRIPTION
+The numeric ID of an existing repository. Required for runner group associations when `use_existing_repository = true`. This can be obtained from the GitHub API.
+DESCRIPTION
+}
+
 variable "template" {
   type = object({
     owner                = optional(string)

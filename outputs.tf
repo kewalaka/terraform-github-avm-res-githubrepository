@@ -59,3 +59,13 @@ output "rulesets" {
     }
   }
 }
+
+output "actions_runner_groups" {
+  description = "Runner group associations configured for the repository."
+  value       = module.actions_runner_groups
+}
+
+output "actions_repository_permissions" {
+  description = "GitHub Actions permissions configured for the repository."
+  value       = try(github_actions_repository_permissions.this[0], null)
+}
