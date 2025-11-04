@@ -15,8 +15,8 @@ module "avm_res_githubrepository_actions_runner_group" {
   source  = "Azure/avm-res-githubrepository/github//modules/actions_runner_group"
   version = "x.y.z"
 
-  runner_group_id = 123
-  repository      = { id = github_repository.this.id }
+  name       = "production-runners"
+  repository = { id = github_repository.this.repo_id }
   
   # Optional: configure workflow restrictions
   restricted_to_workflows = true
@@ -24,6 +24,9 @@ module "avm_res_githubrepository_actions_runner_group" {
   
   # Optional: control public repository access
   allows_public_repositories = false
+  
+  # Optional: existing repository IDs in this runner group
+  existing_repository_ids = [123456, 789012]
 }
 ```
 
