@@ -141,7 +141,11 @@ Default: `null`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_environment_name"></a> [environment\_name](#output\_environment\_name)
+
+Description: The name of the GitHub environment
 
 ## Modules
 

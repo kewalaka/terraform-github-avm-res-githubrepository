@@ -11,6 +11,9 @@ module "secret" {
   is_codespaces_secret = each.value.is_codespaces_secret
   is_dependabot_secret = each.value.is_dependabot_secret
   plaintext_value      = each.value.plaintext_value
+
+  # required to ensure secrets are destroyed before environments
+  depends_on = [module.environments.name]
 }
 
 module "variable" {
@@ -23,4 +26,7 @@ module "variable" {
   }
   value       = each.value.value
   environment = each.value.environment
+
+  # required to ensure variables are destroyed before environments
+  depends_on = [module.environments.name]
 }

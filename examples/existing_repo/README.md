@@ -205,14 +205,6 @@ Default: `null`
 
 The following outputs are exported:
 
-### <a name="output_branch_protection_warning_example1"></a> [branch\_protection\_warning\_example1](#output\_branch\_protection\_warning\_example1)
-
-Description: Warning from example 1 (without node\_id)
-
-### <a name="output_branch_protection_warning_example2"></a> [branch\_protection\_warning\_example2](#output\_branch\_protection\_warning\_example2)
-
-Description: Warning from example 2 (with node\_id)
-
 ### <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name)
 
 Description: The name of the managed repository
