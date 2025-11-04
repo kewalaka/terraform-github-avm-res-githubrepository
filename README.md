@@ -11,10 +11,54 @@ The intention is to separately develop another module for GitHub Organizations a
 ## Features
 
 - Create and manage GitHub repositories, branches & environments
+- **Manage existing repositories** - Configure subcomponents (branches, environments, secrets, etc.) on pre-existing repositories
 - Apply classic branches protection
 - Apply repository rulesets (branch, tag, and push protection)
 - Manage variables & secrets at the repository and environment scope.
 - Enable or disable features such as issues, discussions, wiki, etc.
+
+## Using Existing Repositories
+
+The module can target already-created GitHub repositories while still managing subcomponents. This is useful when repositories are bootstrapped via other workflows, but you want to standardize governance and CI/CD surfaces.
+
+To use an existing repository:
+
+```hcl
+module "existing_repo" {
+  source = "path/to/module"
+
+  name                    = "my-existing-repo"
+  organization_name       = "my-org"
+  use_existing_repository = true
+
+  # Optional: provide repository_node_id for branch protection
+  # If not provided, branch protection will be skipped
+  repository_node_id = "R_kgDOHexample"
+
+  # Configure subcomponents
+  environments = { ... }
+  secrets = { ... }
+  variables = { ... }
+}
+```
+
+**Resource Compatibility Matrix:**
+
+| Resource Type | Requires node\_id? | Works with name? |
+|--------------|-------------------|------------------|
+| Branches | No | Yes |
+| Branch Protection | Yes | No |
+| Rulesets | No | Yes |
+| Environments | No | Yes |
+| Secrets (Actions/Dependabot/Codespaces) | No | Yes |
+| Variables (Actions) | No | Yes |
+| Repository Files | No | Yes |
+| Team Access | No | Yes |
+
+**Note on Branch Protection:**
+- When `use_existing_repository = true` and `repository_node_id` is not provided, branch protection will be skipped with a warning output.
+- To enable branch protection on existing repositories, provide the `repository_node_id` (obtainable via GitHub API or GraphQL).
+- Alternatively, use rulesets for equivalent protection without requiring the node ID.
 
 ## Migration from Branch Protection to Rulesets
 
@@ -371,6 +415,14 @@ object({
 
 Default: `null`
 
+### <a name="input_repository_node_id"></a> [repository\_node\_id](#input\_repository\_node\_id)
+
+Description: The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_rulesets"></a> [rulesets](#input\_rulesets)
 
 Description: A map of rulesets to apply to the repository. The map key is a unique identifier for the ruleset.
@@ -616,6 +668,14 @@ Type: `string`
 
 Default: `"core"`
 
+### <a name="input_use_existing_repository"></a> [use\_existing\_repository](#input\_use\_existing\_repository)
+
+Description: Whether to use an existing repository instead of creating a new one. When true, the module will not create a github\_repository resource and will instead configure subcomponents (branches, environments, secrets, etc.) on the repository specified by the `name` variable.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_use_template_repository"></a> [use\_template\_repository](#input\_use\_template\_repository)
 
 Description: Whether to use the template repository.
@@ -674,6 +734,10 @@ Description: Teams with admin permissions to the repository.
 
 Description: Branch protection policies applied to the repository.
 
+### <a name="output_branch_protection_warning"></a> [branch\_protection\_warning](#output\_branch\_protection\_warning)
+
+Description: Warning message if branch protection is skipped when using an existing repository without repository\_node\_id.
+
 ### <a name="output_branches"></a> [branches](#output\_branches)
 
 Description: Branch configurations created by the branches module.
@@ -692,11 +756,15 @@ Description: Teams with write permissions (push) to the repository.
 
 ### <a name="output_repository"></a> [repository](#output\_repository)
 
-Description: The GitHub repository resource created by this module.
+Description: The GitHub repository resource created by this module. Null when use\_existing\_repository is true.
+
+### <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name)
+
+Description: The name of the repository (either created or existing).
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The resource ID of the GitHub repository.
+Description: The ID of the repository (name for existing repos, full ID for created repos).
 
 ### <a name="output_rulesets"></a> [rulesets](#output\_rulesets)
 

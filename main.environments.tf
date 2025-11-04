@@ -4,7 +4,7 @@ module "environments" {
 
   name = each.value.name
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
   deployment_branch_policy = each.value.deployment_branch_policy != null ? {
     protected_branches     = each.value.deployment_branch_policy.protected_branches

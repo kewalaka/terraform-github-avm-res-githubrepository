@@ -5,7 +5,7 @@ module "file" {
   content = each.value.content
   file    = each.value.file
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
   autocreate_branch               = each.value.autocreate_branch
   autocreate_branch_source_branch = each.value.autocreate_branch_source_branch

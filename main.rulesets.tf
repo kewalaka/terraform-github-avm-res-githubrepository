@@ -5,8 +5,8 @@ module "rulesets" {
   conditions = each.value.conditions
   name       = each.value.name
   repository = {
-    id   = github_repository.this.id
-    name = github_repository.this.name
+    id   = local.repository_id
+    name = local.repository_name
   }
   target        = each.value.target
   bypass_actors = try(each.value.bypass_actors, [])

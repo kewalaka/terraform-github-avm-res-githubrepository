@@ -4,7 +4,7 @@ module "branches" {
 
   name = each.value.name
   repository = {
-    id = github_repository.this.id
+    id = local.repository_id
   }
   source_branch = try(each.value.source_branch, null)
   source_sha    = try(each.value.source_sha, null)
@@ -12,11 +12,11 @@ module "branches" {
 
 module "branch_protection_policies" {
   source   = "./modules/branch_protection"
-  for_each = var.branch_protection_policies
+  for_each = local.enable_branch_protection ? var.branch_protection_policies : {}
 
   pattern = each.value.pattern
   repository = {
-    id = github_repository.this.id
+    id = local.repository_node_id
   }
   allows_deletions                = try(each.value.allows_deletions, null)
   allows_force_pushes             = try(each.value.allows_force_pushes, null)
