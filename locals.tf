@@ -10,4 +10,7 @@ locals {
   # Repository identity - use existing repo name or created repo name
   repository_name    = var.use_existing_repository ? var.name : github_repository.this[0].name
   repository_node_id = var.use_existing_repository ? var.repository_node_id : github_repository.this[0].node_id
+
+  # OIDC template configuration
+  oidc_template = var.actions_oidc_subject_claim_customization_template
 }

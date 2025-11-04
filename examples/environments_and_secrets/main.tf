@@ -63,4 +63,14 @@ module "github_repository" {
     }
   }
   visibility = "public"
+
+  # Configure OIDC subject claim customization with custom claim keys
+  actions_oidc_subject_claim_customization_template = {
+    use_default = false
+    include_claim_keys = [
+      "repo",
+      "context",
+      "job_workflow_ref"
+    ]
+  }
 }

@@ -145,85 +145,42 @@ module "existing_repo_with_node_id" {
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
-
-- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.7.0)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.9 |
+| <a name="requirement_github"></a> [github](#requirement\_github) | ~> 6.7.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.5 |
 
 ## Resources
 
-The following resources are used by this module:
-
-- [github_repository.external](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
-- [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
+| Name | Type |
+|------|------|
+| [github_repository.external](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) | resource |
+| [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
 
 <!-- markdownlint-disable MD013 -->
-## Required Inputs
+## Inputs
 
-The following input variables are required:
-
-### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
-
-Description: The AppId of the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id)
-
-Description: The installation id of the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file)
-
-Description: The contents of the PEM file for the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name)
-
-Description: The name of the GitHub organization.
-
-Type: `string`
-
-## Optional Inputs
-
-The following input variables are optional (have default values):
-
-### <a name="input_existing_repository_node_id"></a> [existing\_repository\_node\_id](#input\_existing\_repository\_node\_id)
-
-Description: Optional: the node ID of the existing repository when branch protection should be managed.
-
-Type: `string`
-
-Default: `null`
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id) | The AppId of the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id) | The installation id of the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file) | The contents of the PEM file for the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name) | The name of the GitHub organization. | `string` | n/a | yes |
+| <a name="input_existing_repository_node_id"></a> [existing\_repository\_node\_id](#input\_existing\_repository\_node\_id) | Optional: the node ID of the existing repository when branch protection should be managed. | `string` | `null` | no |
 
 ## Outputs
 
-The following outputs are exported:
-
-### <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name)
-
-Description: The name of the managed repository
+| Name | Description |
+|------|-------------|
+| <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name) | The name of the managed repository |
 
 ## Modules
 
-The following Modules are called:
-
-### <a name="module_existing_repo_with_node_id"></a> [existing\_repo\_with\_node\_id](#module\_existing\_repo\_with\_node\_id)
-
-Source: ../../
-
-Version:
-
-### <a name="module_existing_repo_without_node_id"></a> [existing\_repo\_without\_node\_id](#module\_existing\_repo\_without\_node\_id)
-
-Source: ../../
-
-Version:
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_existing_repo_with_node_id"></a> [existing\_repo\_with\_node\_id](#module\_existing\_repo\_with\_node\_id) | ../../ | n/a |
+| <a name="module_existing_repo_without_node_id"></a> [existing\_repo\_without\_node\_id](#module\_existing\_repo\_without\_node\_id) | ../../ | n/a |
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

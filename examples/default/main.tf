@@ -34,4 +34,10 @@ module "github_repository" {
   archive_on_destroy   = false
   visibility           = "private"
   vulnerability_alerts = false
+
+  # OIDC template not configured - repository will use GitHub defaults
+  # To enable, add:
+  # actions_oidc_subject_claim_customization_template = {
+  #   use_default = true
+  # }
 }

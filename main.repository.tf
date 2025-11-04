@@ -115,3 +115,14 @@ resource "github_team_repository" "pull" {
 #   commit_message      = "Add ${each.key} [skip ci]"
 #   overwrite_on_create = true
 # }
+
+# GitHub Actions OIDC subject claim customization template
+resource "github_actions_repository_oidc_subject_claim_customization_template" "this" {
+  count = local.oidc_template != null ? 1 : 0
+
+  repository  = local.repository_name
+  use_default = local.oidc_template.use_default
+  # When use_default is true, explicitly set include_claim_keys to null per provider requirement
+  # The validation ensures this is safe, but being explicit makes the provider contract clear
+  include_claim_keys = local.oidc_template.use_default ? null : local.oidc_template.include_claim_keys
+}
