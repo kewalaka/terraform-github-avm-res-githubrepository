@@ -13,6 +13,11 @@ output "branch_protection_warning" {
   value       = var.use_existing_repository && var.repository_node_id == null ? "Branch protection is skipped because repository_node_id was not provided. To enable branch protection, provide the repository node ID or use rulesets instead." : null
 }
 
+output "runner_groups_warning" {
+  description = "Warning message if runner group associations are skipped when using an existing repository without repository_repo_id."
+  value       = var.use_existing_repository && var.repository_repo_id == null && length(var.actions_runner_groups) > 0 ? "Runner group associations are skipped because repository_repo_id was not provided. To enable runner group associations, provide the repository numeric ID (obtainable from GitHub API)." : null
+}
+
 output "branches" {
   description = "Branch configurations created by the branches module."
   value       = module.branches

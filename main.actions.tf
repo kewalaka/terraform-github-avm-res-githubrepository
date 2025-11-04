@@ -17,10 +17,11 @@ resource "github_actions_repository_permissions" "this" {
 }
 
 # Runner Group Associations
+# Only create associations when we have a valid repository_repo_id
 module "actions_runner_groups" {
   source = "./modules/actions_runner_group"
 
-  for_each = var.actions_runner_groups
+  for_each = local.repository_repo_id != null ? var.actions_runner_groups : {}
 
   name                       = each.value.name
   repository                 = { id = local.repository_repo_id }

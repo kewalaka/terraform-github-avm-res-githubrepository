@@ -883,6 +883,10 @@ Description: The ID of the repository (name for existing repos, full ID for crea
 
 Description: Rulesets applied to the GitHub repository.
 
+### <a name="output_runner_groups_warning"></a> [runner\_groups\_warning](#output\_runner\_groups\_warning)
+
+Description: Warning message if runner group associations are skipped when using an existing repository without repository\_repo\_id.
+
 ## Modules
 
 The following Modules are called:
