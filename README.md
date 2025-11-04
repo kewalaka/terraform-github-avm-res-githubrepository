@@ -14,7 +14,8 @@ The intention is to separately develop another module for GitHub Organizations a
 - **Manage existing repositories** - Configure subcomponents (branches, environments, secrets, etc.) on pre-existing repositories
 - Apply classic branches protection
 - Apply repository rulesets (branch, tag, and push protection)
-- Manage variables & secrets at the repository and environment scope.
+- Manage variables & secrets at the repository and environment scope
+- **Configure GitHub Actions** - Manage repository permissions and associate with runner groups
 - Enable or disable features such as issues, discussions, wiki, etc.
 
 ## Using Existing Repositories
@@ -44,21 +45,29 @@ module "existing_repo" {
 
 **Resource Compatibility Matrix:**
 
-| Resource Type | Requires node\_id? | Works with name? |
-|--------------|-------------------|------------------|
-| Branches | No | Yes |
-| Branch Protection | Yes | No |
-| Rulesets | No | Yes |
-| Environments | No | Yes |
-| Secrets (Actions/Dependabot/Codespaces) | No | Yes |
-| Variables (Actions) | No | Yes |
-| Repository Files | No | Yes |
-| Team Access | No | Yes |
+| Resource Type | Requires node\_id? | Requires repo\_id? | Works with name? |
+|--------------|-------------------|-------------------|------------------|
+| Branches | No | No | Yes |
+| Branch Protection | Yes | No | No |
+| Rulesets | No | No | Yes |
+| Environments | No | No | Yes |
+| Secrets (Actions/Dependabot/Codespaces) | No | No | Yes |
+| Variables (Actions) | No | No | Yes |
+| Repository Files | No | No | Yes |
+| Team Access | No | No | Yes |
+| Actions Runner Groups | No | Yes | Yes |
+| Actions Repository Permissions | No | No | Yes |
 
 **Note on Branch Protection:**
+
 - When `use_existing_repository = true` and `repository_node_id` is not provided, branch protection will be skipped with a warning output.
 - To enable branch protection on existing repositories, provide the `repository_node_id` (obtainable via GitHub API or GraphQL).
 - Alternatively, use rulesets for equivalent protection without requiring the node ID.
+
+**Note on Runner Groups:**
+
+- When `use_existing_repository = true` and `repository_repo_id` is not provided, runner group associations will be skipped.
+- To enable runner group associations on existing repositories, provide the `repository_repo_id` (numeric ID obtainable via GitHub API).
 
 ## Migration from Branch Protection to Rulesets
 
@@ -76,7 +85,6 @@ TODO:
 - Testing for adding team permissions
 - Testing for adding files & using templates
 - OIDC subject mapping
-- Associating runner groups and apps
 - Managing collaborators
 
 .. probably more I haven't thought of yet!

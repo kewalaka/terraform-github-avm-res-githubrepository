@@ -56,3 +56,18 @@ Or using the GitHub API directly:
 curl -H "Authorization: token YOUR_TOKEN" \
   https://api.github.com/orgs/YOUR_ORG/actions/runner-groups
 ```
+
+## Getting Repository Numeric ID (repo_id)
+
+If using an existing repository, you need the numeric repository ID for runner group associations:
+
+```bash
+gh api repos/YOUR_ORG/YOUR_REPO --jq .id
+```
+
+Or using curl:
+
+```bash
+curl -H "Authorization: token YOUR_TOKEN" \
+  https://api.github.com/repos/YOUR_ORG/YOUR_REPO | jq .id
+```
