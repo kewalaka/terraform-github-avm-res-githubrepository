@@ -26,3 +26,9 @@ variable "github_organization_name" {
   description = "The name of the GitHub organization."
   nullable    = false
 }
+
+variable "existing_repository_node_id" {
+  type        = string
+  default     = null
+  description = "Optional: the node ID of the existing repository when branch protection should be managed."
+}

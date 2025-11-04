@@ -51,6 +51,14 @@ Options for configuring security and analysis features.
 DESCRIPTION
 }
 
+variable "repository_node_id" {
+  type        = string
+  default     = null
+  description = <<DESCRIPTION
+The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
+DESCRIPTION
+}
+
 variable "template" {
   type = object({
     owner                = optional(string)
@@ -66,6 +74,15 @@ The template repository to use when creating the repository.
 - `include_all_branches` (Optional) - Whether to include all branches from the template repository.
 
 DESCRIPTION
+}
+
+variable "use_existing_repository" {
+  type        = bool
+  default     = false
+  description = <<DESCRIPTION
+Whether to use an existing repository instead of creating a new one. When true, the module will not create a github_repository resource and will instead configure subcomponents (branches, environments, secrets, etc.) on the repository specified by the `name` variable.
+DESCRIPTION
+  nullable    = false
 }
 
 variable "use_template_repository" {
