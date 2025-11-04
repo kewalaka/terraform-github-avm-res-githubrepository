@@ -55,7 +55,7 @@ module "github_repository" {
       restricted_to_workflows    = true
       selected_workflows         = [".github/workflows/deploy.yml", ".github/workflows/test.yml"]
       allows_public_repositories = false
-      existing_repository_ids    = []  # Add IDs of other repos in this group if any
+      existing_repository_ids    = [] # Add IDs of other repos in this group if any
     }
   }
 }
