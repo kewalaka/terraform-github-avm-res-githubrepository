@@ -115,3 +115,12 @@ resource "github_team_repository" "pull" {
 #   commit_message      = "Add ${each.key} [skip ci]"
 #   overwrite_on_create = true
 # }
+
+# GitHub Actions OIDC subject claim customization template
+resource "github_actions_repository_oidc_subject_claim_customization_template" "this" {
+  count = var.actions_oidc_subject_claim_customization_template != null ? 1 : 0
+
+  repository         = local.repository_name
+  use_default        = var.actions_oidc_subject_claim_customization_template.use_default
+  include_claim_keys = var.actions_oidc_subject_claim_customization_template.use_default ? null : var.actions_oidc_subject_claim_customization_template.include_claim_keys
+}

@@ -116,3 +116,42 @@ variable "vulnerability_alerts" {
   description = "Enable vulnerability alerts"
   nullable    = false
 }
+
+variable "actions_oidc_subject_claim_customization_template" {
+  type = object({
+    use_default        = bool
+    include_claim_keys = optional(list(string))
+  })
+  default     = null
+  description = <<DESCRIPTION
+Configuration for GitHub Actions OIDC subject claim customization template for this repository.
+
+- `use_default`: If true, use the default template. When true, `include_claim_keys` must be null or omitted.
+- `include_claim_keys`: Optional list of OpenID Connect claim keys to include in the subject claim. Valid keys include: `repo`, `context`, `job_workflow_ref`, `repository_id`, `repository_owner_id`, `runner_environment`, `environment`, `event_name`, `ref`, `sha`, `workflow`, etc. When `use_default` is false and this is not set, the repository will inherit the organization template if present, otherwise use GitHub defaults.
+
+Set to `null` (default) to not manage the OIDC template for this repository.
+
+Example for using default:
+```hcl
+actions_oidc_subject_claim_customization_template = {
+  use_default = true
+}
+```
+
+Example for custom claim keys:
+```hcl
+actions_oidc_subject_claim_customization_template = {
+  use_default = false
+  include_claim_keys = ["repo", "context", "job_workflow_ref"]
+}
+```
+DESCRIPTION
+
+  validation {
+    condition = var.actions_oidc_subject_claim_customization_template == null ? true : (
+      var.actions_oidc_subject_claim_customization_template.use_default == false ||
+      var.actions_oidc_subject_claim_customization_template.include_claim_keys == null
+    )
+    error_message = "When use_default is true, include_claim_keys must be null or omitted."
+  }
+}

@@ -83,59 +83,44 @@ module "github_repository" {
     }
   }
   visibility = "public"
+
+  # Configure OIDC subject claim customization with custom claim keys
+  actions_oidc_subject_claim_customization_template = {
+    use_default = false
+    include_claim_keys = [
+      "repo",
+      "context",
+      "job_workflow_ref"
+    ]
+  }
 }
 ```
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.9)
-
-- <a name="requirement_github"></a> [github](#requirement\_github) (~> 6.7.0)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.9 |
+| <a name="requirement_github"></a> [github](#requirement\_github) | ~> 6.7.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.5 |
 
 ## Resources
 
-The following resources are used by this module:
-
-- [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) (resource)
-- [github_user.current](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/user) (data source)
+| Name | Type |
+|------|------|
+| [random_pet.repo_name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/pet) | resource |
+| [github_user.current](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/user) | data source |
 
 <!-- markdownlint-disable MD013 -->
-## Required Inputs
+## Inputs
 
-The following input variables are required:
-
-### <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id)
-
-Description: The AppId of the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id)
-
-Description: The installation id of the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file)
-
-Description: The contents of the PEM file for the GitHub App, used for authentication.
-
-Type: `string`
-
-### <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name)
-
-Description: The name of the GitHub organization.
-
-Type: `string`
-
-## Optional Inputs
-
-No optional inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_github_app_id"></a> [github\_app\_id](#input\_github\_app\_id) | The AppId of the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_app_installation_id"></a> [github\_app\_installation\_id](#input\_github\_app\_installation\_id) | The installation id of the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_app_pem_file"></a> [github\_app\_pem\_file](#input\_github\_app\_pem\_file) | The contents of the PEM file for the GitHub App, used for authentication. | `string` | n/a | yes |
+| <a name="input_github_organization_name"></a> [github\_organization\_name](#input\_github\_organization\_name) | The name of the GitHub organization. | `string` | n/a | yes |
 
 ## Outputs
 
@@ -143,13 +128,9 @@ No outputs.
 
 ## Modules
 
-The following Modules are called:
-
-### <a name="module_github_repository"></a> [github\_repository](#module\_github\_repository)
-
-Source: ../../
-
-Version:
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_github_repository"></a> [github\_repository](#module\_github\_repository) | ../../ | n/a |
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
