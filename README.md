@@ -110,6 +110,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [github_actions_repository_permissions.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/actions_repository_permissions) (resource)
 - [github_repository.this](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/repository) (resource)
 - [github_team_repository.admin](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
 - [github_team_repository.maintain](https://registry.terraform.io/providers/integrations/github/latest/docs/resources/team_repository) (resource)
@@ -141,6 +142,94 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_actions_repository_permissions"></a> [actions\_repository\_permissions](#input\_actions\_repository\_permissions)
+
+Description: Configuration for GitHub Actions permissions at the repository level.
+
+- `enabled` - (Optional) Whether GitHub Actions is enabled on the repository. Defaults to true.
+- `allowed_actions` - (Optional) The permissions policy that controls the actions and reusable workflows that are allowed to run. Can be one of: 'all', 'local\_only', or 'selected'. Defaults to 'all'.
+- `allowed_actions_config` - (Optional) Configuration for allowed actions when allowed\_actions is 'selected'.
+  - `github_owned_allowed` - (Optional) Whether GitHub-owned actions are allowed. Defaults to true.
+  - `patterns_allowed` - (Optional) List of action patterns allowed to run. Defaults to empty list.
+  - `verified_allowed` - (Optional) Whether actions from verified creators are allowed. Defaults to false.
+
+Example:
+```terraform
+actions_repository_permissions = {
+  enabled         = true
+  allowed_actions = "selected"
+  allowed_actions_config = {
+    github_owned_allowed = true
+    patterns_allowed     = ["actions/*", "github/*"]
+    verified_allowed     = true
+  }
+}
+```
+
+Type:
+
+```hcl
+object({
+    enabled         = optional(bool, true)
+    allowed_actions = optional(string, "all")
+    allowed_actions_config = optional(object({
+      github_owned_allowed = optional(bool, true)
+      patterns_allowed     = optional(list(string), [])
+      verified_allowed     = optional(bool, false)
+    }))
+  })
+```
+
+Default: `{}`
+
+### <a name="input_actions_runner_groups"></a> [actions\_runner\_groups](#input\_actions\_runner\_groups)
+
+Description: A map of runner group associations to configure for this repository.
+
+- `name` - (Required) The name of the runner group.
+- `visibility` - (Optional) Visibility of the runner group. Must be 'selected' when associating with repositories. Defaults to 'selected'.
+- `allows_public_repositories` - (Optional) Whether public repositories can use runners in this group. Defaults to false.
+- `restricted_to_workflows` - (Optional) Whether this runner group can only be used for specific workflows. Defaults to false.
+- `selected_workflows` - (Optional) List of workflows that can use this runner group. Only applies when restricted\_to\_workflows is true. Defaults to empty list.
+- `existing_repository_ids` - (Optional) List of existing repository IDs already associated with this runner group. This ensures we don't remove them when adding the new repository. Defaults to empty list.
+
+Example:
+```terraform
+actions_runner_groups = {
+  "production" = {
+    name                       = "production-runners"
+    restricted_to_workflows    = true
+    selected_workflows         = [".github/workflows/deploy.yml"]
+    allows_public_repositories = false
+    existing_repository_ids    = [123456, 789012]  # Other repos already in this group
+  }
+}
+```
+
+Note: You must import existing runner groups before managing them:
+```
+terraform import 'module.repo.module.actions_runner_groups["production"].github_actions_runner_group.this' <runner_group_id>
+```
+
+IMPORTANT: Each runner group can only be managed by one Terraform configuration.  
+If multiple configurations try to manage the same runner group, they will conflict.  
+Consider creating separate runner groups or managing them centrally.
+
+Type:
+
+```hcl
+map(object({
+    name                       = string
+    visibility                 = optional(string, "selected")
+    allows_public_repositories = optional(bool, false)
+    restricted_to_workflows    = optional(bool, false)
+    selected_workflows         = optional(list(string), [])
+    existing_repository_ids    = optional(list(number), [])
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_archive_on_destroy"></a> [archive\_on\_destroy](#input\_archive\_on\_destroy)
 
@@ -420,6 +509,14 @@ Default: `null`
 Description: The node ID of an existing repository. Required for branch protection when `use_existing_repository = true`. If not provided when using an existing repository, branch protection will be skipped. This can be obtained from the GitHub API or GraphQL.
 
 Type: `string`
+
+Default: `null`
+
+### <a name="input_repository_repo_id"></a> [repository\_repo\_id](#input\_repository\_repo\_id)
+
+Description: The numeric ID of an existing repository. Required for runner group associations when `use_existing_repository = true`. This can be obtained from the GitHub API.
+
+Type: `number`
 
 Default: `null`
 
@@ -726,6 +823,14 @@ Default: `true`
 
 The following outputs are exported:
 
+### <a name="output_actions_repository_permissions"></a> [actions\_repository\_permissions](#output\_actions\_repository\_permissions)
+
+Description: GitHub Actions permissions configured for the repository.
+
+### <a name="output_actions_runner_groups"></a> [actions\_runner\_groups](#output\_actions\_runner\_groups)
+
+Description: Runner group associations configured for the repository.
+
 ### <a name="output_admins"></a> [admins](#output\_admins)
 
 Description: Teams with admin permissions to the repository.
@@ -773,6 +878,12 @@ Description: Rulesets applied to the GitHub repository.
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_actions_runner_groups"></a> [actions\_runner\_groups](#module\_actions\_runner\_groups)
+
+Source: ./modules/actions_runner_group
+
+Version:
 
 ### <a name="module_branch_protection_policies"></a> [branch\_protection\_policies](#module\_branch\_protection\_policies)
 
