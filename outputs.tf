@@ -1,3 +1,8 @@
+output "actions_permissions" {
+  description = "GitHub Actions repository permissions configuration."
+  value       = module.actions_permissions
+}
+
 output "admins" {
   description = "Teams with admin permissions to the repository."
   value       = github_team_repository.admin
